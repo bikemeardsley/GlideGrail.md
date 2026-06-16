@@ -3,51 +3,83 @@
 > Engagement-agnostic best practices for ServiceNow development.  
 > PREFIX is engagement-specific: use the client prefix, `SN` (ServiceNow), or equivalent as appropriate per project.
 
-> **Authoritative platform reference.** These standards capture *judgment and conventions*. For *current, authoritative platform behavior* (APIs, feature specifics, release changes), consult ServiceNow's official documentation published as markdown for LLM consumption: https://github.com/ServiceNow/ServiceNowDocs . If a rule here and the official docs ever conflict on a platform *fact*, the official docs win on facts; this doc governs style and conventions. Agents: check that repo for any feature detail you are unsure about before generating code.
+> **Authoritative platform reference.** These standards capture *judgment and conventions*. For *current, authoritative platform behavior* (APIs, feature specifics, release changes), consult ServiceNow's official documentation published as markdown for LLM consumption: https://github.com/ServiceNow/ServiceNowDocs . If a rule here and the official docs ever conflict on a platform *fact*, the official docs win on facts; this doc governs style and conventions. These sections deliberately avoid restating platform mechanics the official docs already cover; where a mechanic *is* summarised here, it is because it directly shapes a design rule. Agents: check that repo for any feature detail you are unsure about before generating code.
+
+> **Authoring scoped-app structure — ServiceNow SDK (Fluent).** Deterministic app metadata (tables, fields, ACLs, REST Messages, properties, Scripted REST APIs) is authored in TypeScript via the **ServiceNow SDK** and deployed with the `now-sdk` CLI — *not* clicked together in the UI (see [Application Scope](#application-scope) / [Update Sets](#update-sets)). Fluent has little presence in model training data, so generated Fluent is hallucination-prone: **never invent a Fluent signature.** The authoritative, version-published API reference is the Fluent docs hub at https://servicenow.github.io/sdk/ , which also exposes machine-readable grounding (`llms.txt`, per-version `llms-full.txt`, and `versions.json`). Agents: resolve the project's `@servicenow/sdk` version from `package.json`, then ground against that version's reference — or, on recent SDKs, use the official **`now-sdk-explain`** agent skill (bundled in the npm package), which feeds live API signatures straight from the installed CLI. Generative artifacts (flow logic, Script Include bodies, UI) remain a Now Assist / NASK concern; this blurb governs the deterministic structure the SDK owns.
+
+> **Learning, not just rules.** Rules that are not self-evident carry a collapsible **Why?** block underneath — expand it when you want the reasoning, ignore it when you just need the rule. Agents: the Why blocks are context you may read; the rules themselves are the directives to follow.
 
 ---
 
 ## Table of Contents
 
-1. [Naming Conventions](#naming-conventions)
-2. [General Coding Standards](#general-coding-standards)
-3. [Code Readability](#code-readability)
-4. [Official API Preference](#official-api-preference)
-5. [System Properties](#system-properties)
-6. [GlideRecord](#gliderecord)
-7. [GlideForm](#glideform)
-8. [GlideAJAX](#glideajax)
-9. [Script Includes](#script-includes)
-10. [UI Policies](#ui-policies)
-11. [Business Rules](#business-rules)
-12. [Client Scripts](#client-scripts)
-13. [Access Control Lists (ACLs)](#access-control-lists-acls)
-14. [Logging](#logging)
-15. [Operational Hygiene](#operational-hygiene)
-16. [Messages & i18n](#messages--i18n)
-17. [Notifications](#notifications)
-18. [Scheduled Jobs](#scheduled-jobs)
-19. [Multi-row Variable Sets (MRVS)](#multi-row-variable-sets-mrvs)
-20. [Service Catalog — Items & Record Producers](#service-catalog--items--record-producers)
-21. [Update Sets](#update-sets)
-22. [Flow Designer](#flow-designer)
-23. [CMDB](#cmdb)
-24. [UI Builder (Next Experience)](#ui-builder-next-experience)
-25. [Service Portal — Widgets](#service-portal--widgets)
-26. [Service Portal — AngularJS Providers](#service-portal--angularjs-providers)
-27. [Service Portal — Server Communication](#service-portal--server-communication)
-28. [Service Portal — SCSS](#service-portal--scss)
-29. [Service Portal — Styling Conventions](#service-portal--styling-conventions)
-30. [Service Portal — Accessibility (WCAG)](#service-portal--accessibility-wcag)
-31. [Service Portal — Moment.js i18n](#service-portal--momentjs-i18n)
-32. [Automated Test Framework (ATF)](#automated-test-framework-atf)
-33. [Import Sets & Transform Maps](#import-sets--transform-maps)
-34. [Integrations — General](#integrations--general)
-35. [Integrations — Scripted REST API](#integrations--scripted-rest-api)
-36. [Integrations — Integration Hub & Custom Spokes](#integrations--integration-hub--custom-spokes)
-37. [Integrations — OAuth 2.0](#integrations--oauth-20)
-38. [Integrations — LDAP User Import](#integrations--ldap-user-import)
-39. [Integrations — Security](#integrations--security)
+1. [Agent Ground Rules](#agent-ground-rules)
+2. [Naming Conventions](#naming-conventions)
+3. [General Coding Standards](#general-coding-standards)
+4. [Application Scope](#application-scope)
+5. [Code Readability](#code-readability)
+6. [Official API Preference](#official-api-preference)
+7. [Do Not Use](#do-not-use)
+8. [System Properties](#system-properties)
+9. [GlideRecord](#gliderecord)
+10. [Performance at Scale](#performance-at-scale)
+11. [GlideForm](#glideform)
+12. [GlideAJAX](#glideajax)
+13. [Script Includes](#script-includes)
+14. [UI Policies](#ui-policies)
+15. [Business Rules](#business-rules)
+16. [Events](#events)
+17. [Client Scripts](#client-scripts)
+18. [UI Actions](#ui-actions)
+19. [Access Control Lists (ACLs)](#access-control-lists-acls)
+20. [Logging](#logging)
+21. [Error Handling](#error-handling)
+22. [Operational Hygiene](#operational-hygiene)
+23. [Messages & i18n](#messages--i18n)
+24. [Notifications](#notifications)
+25. [Scheduled Jobs](#scheduled-jobs)
+26. [Multi-row Variable Sets (MRVS)](#multi-row-variable-sets-mrvs)
+27. [Attachments](#attachments)
+28. [Service Catalog — Items & Record Producers](#service-catalog--items--record-producers)
+29. [Update Sets](#update-sets)
+30. [Flow Designer](#flow-designer)
+31. [CMDB](#cmdb)
+32. [UI Builder (Next Experience)](#ui-builder-next-experience)
+33. [Service Portal — Widgets](#service-portal--widgets)
+34. [Service Portal — AngularJS Providers](#service-portal--angularjs-providers)
+35. [Service Portal — Server Communication](#service-portal--server-communication)
+36. [Service Portal — Client-Side State](#service-portal--client-side-state)
+37. [Service Portal — SCSS](#service-portal--scss)
+38. [Service Portal — Styling Conventions](#service-portal--styling-conventions)
+39. [Service Portal — Accessibility (WCAG)](#service-portal--accessibility-wcag)
+40. [Service Portal — Moment.js i18n](#service-portal--momentjs-i18n)
+41. [Automated Test Framework (ATF)](#automated-test-framework-atf)
+42. [Import Sets & Transform Maps](#import-sets--transform-maps)
+43. [Integrations — General](#integrations--general)
+44. [Integrations — Scripted REST API](#integrations--scripted-rest-api)
+45. [Integrations — Integration Hub & Custom Spokes](#integrations--integration-hub--custom-spokes)
+46. [Integrations — OAuth 2.0](#integrations--oauth-20)
+47. [Integrations — LDAP User Import](#integrations--ldap-user-import)
+48. [Integrations — Security](#integrations--security)
+
+---
+
+## Agent Ground Rules
+
+These standards exist to remove guesswork. Where ambiguity remains anyway, **confirm with the user instead of guessing** — but only at the decision points below. Asking about everything is as unhelpful as asking about nothing; one consolidated question beats five small ones.
+
+**Confirm before:**
+
+- Creating a **new table**
+- Creating a **new Script Include** when an existing custom SI could plausibly own the logic (see [Reuse Before You Create](#script-includes))
+- Creating or modifying **ACLs, roles, or anything security-relevant**
+- Any **destructive or mass operation** — deletes, `updateMultiple()`/`deleteMultiple()`, data migration
+- Creating a **new application scope**, or putting anything in global scope (see [Application Scope](#application-scope))
+- Creating a **database index** or other instance-wide performance change
+- Building project infrastructure such as a **Tier 1 logger** (see [Logging](#logging))
+- **Deviating from any rule in this document**
+
+**Do not confirm for:** routine artifacts that follow these standards — adding a method to the correct SI, a Business Rule built per the rules, system properties, messages, UI Policies. Just build them correctly.
 
 ---
 
@@ -60,11 +92,13 @@
 | Fields | `snake_case` | `assigned_group` |
 | Script Includes | `PascalCase` | `IncidentService`, `IncidentServiceAjax` |
 | Business Rules / Client Scripts | `PREFIX - Description` | `SN - Set Priority on Create` |
-| Functions / variables | `camelCase` with type hint | `incidentGr`, `membersArr` |
+| Functions / variables | `camelCase` with type hint | `grIncident`, `membersArr` |
+| Glide object variables | Glide-type prefix + table/purpose | `grUser` (GlideRecord/GlideRecordSecure on sys_user), `gaIncident` (GlideAggregate), `gdtStart` (GlideDateTime) |
 | Constants | `UPPERCASE_SNAKE` | `MAX_RETRY_COUNT` |
 | Widget name | Title Case | `My Task Board` |
 | Widget ID | `kebab-case` | `my-task-board` |
 | Update sets | `PREFIX - STRY# - Description #00N` | `SN - STRY001 - Incident Form Changes #001` |
+| Flow actions / subflows | `PREFIX - Action Name` | `SN - Add Movie to Radarr` |
 
 ---
 
@@ -78,7 +112,48 @@
 - Use `GlideRecordSecure` for any Script Include callable from the client side
 - Widget server scripts must delegate all business logic to Script Includes — no logic directly in the widget
 - Wrap single-context scripts (transform map scripts, background scripts, ad-hoc scripts) in a self-executing function `(function() { ... })();` to prevent global scope leakage. Business Rules and Client Scripts are already wrapped by the platform default — keep the default wrapper intact.
+- Never hardcode the instance URL — read it from the platform (`gs.getProperty('glide.servlet.uri')` server-side); hardcoded URLs break on every clone and rename
 - Prefer `getDisplayValue()` over hardcoded display field names (`gr.cmdb_ci.getDisplayValue()` instead of `gr.cmdb_ci.name`) so code survives dictionary display-field changes.
+
+### Dates, Times & Timezones
+
+- The database stores every datetime in **UTC**. `getValue()` returns the raw UTC value; `getDisplayValue()` returns it in the **session user's timezone and format**. Know which one you are holding at all times — most timezone bugs are one of these used as the other
+- Do date math with **GlideDateTime methods** (`addSeconds()`, `addDays...()`, `before()`/`after()`, `compareTo()`) — never with string slicing or manual offset arithmetic
+- GlideDateTime exposes explicit **`...UTC` and `...LocalTime` method variants** — pick one deliberately; mixing them silently shifts values by the user's offset
+- **Scheduled Jobs and scheduled Flows: always set the Time zone field explicitly.** An unset timezone follows the system default, which rarely matches the business schedule the cron expression was written for — a 07:30 job is meaningless until you say 07:30 *where*
+- Client side stays on the existing rule: pass **Unix ms timestamps**, never formatted date strings
+- **Match the JavaScript level to the runtime** — use modern JS (`const`/`let`, arrow functions, template literals) only where the engine supports it: UI Builder client scripts, and **scoped server code** (the ES12 engine has been available per application since Tokyo — confirm it is enabled for the app). **Global scope historically ran ES5 (Rhino); since Xanadu, ES12 is also available there for many script types (Script Includes, Business Rules, Fix Scripts) — though not universally (background scripts, for instance, still lack the toggle), so confirm per script rather than assuming.** Anything that must run everywhere sticks to classic ES5 style. The safe baseline when unsure is ES5; never mix styles within one artifact.
+
+<details><summary><b>Why these rules?</b></summary>
+
+- **Never dot-walk sys_ids** — `gr.assigned_to.sys_id` forces the platform to query and instantiate the *referenced* record just to read an ID that `getValue('assigned_to')` already holds on the current row. It returns a `GlideElement` (not a string) and costs a needless database round trip per row.
+- **Never `forEach` server-side** — `forEach` cannot `break`, so it always walks the entire array even after you've found what you need, and it encourages side-effect loops where `map`/`filter`/`reduce` state the intent directly. GlideRecord result sets aren't arrays at all — they're iterators, which is why `while (gr.next())` is the correct shape there.
+- **`Object.freeze` constants** — without freezing, any script can silently mutate a shared constant at runtime; with it, accidental writes fail instead of corrupting every later reader.
+- **`GlideDateTime` server-side / Unix ms to the client** — server date strings are formatted per user locale and timezone, so passing them around invites parsing bugs. An epoch-milliseconds number is unambiguous in both directions.
+- **`GlideRecordSecure` for client-callable SIs** — anything callable from the browser is an attack surface: parameters can be forged. `GlideRecordSecure` enforces ACLs on every row and field it touches, so a tampered call can't read or write what the user's roles don't allow.
+- **Widgets delegate to Script Includes** — logic in a widget server script can only ever run in that widget; the same logic in an SI is reusable from BRs, jobs, other widgets, and tests, and can be reviewed in one place.
+
+</details>
+
+
+---
+
+## Application Scope
+
+**All new functionality is built in an application scope. Global is the exception, never the default.**
+
+- Scopes are the platform's tracking mechanism for "what was added on top of the system" — everything custom is identifiable, exportable, and upgrade-isolated. Work dumped into the default global application loses all of that.
+- A user adding functionality should rarely, if ever, be touching global scope. If something genuinely must live in global (rare — certain platform extension points), create a **dedicated custom application in global scope** so the work is still tracked as a named application. Never add artifacts to the default [Global] application.
+- **Cross-scope access:** expose capability deliberately — a documented Script Include API or a Scripted REST endpoint — rather than opening cross-scope table access. Set *Accessible from* consciously at creation (it cannot be changed later on actions/subflows).
+- Scoped runtime differences are real: some global-only APIs are unavailable or behave differently in scope. When a script fails in scope but worked globally, check the scoped API documentation before reaching for workarounds.
+
+<details><summary><b>Why scope-first?</b></summary>
+
+- **Traceability** — a scope answers "what did we build?" instantly; global custom artifacts mixed with baseline take archaeology to identify.
+- **Upgrade isolation** — scoped apps declare dependencies and version as units; global customisations entangle with platform upgrades.
+- **Conflict prevention** — scope namespacing makes name collisions with other apps (and future ServiceNow features) structurally impossible.
+
+</details>
 
 ---
 
@@ -123,10 +198,18 @@ Variable and function names should make the code self-documenting.
 function del(r, d, s) { /* ... */ }
 
 // ✅ GOOD — intent is clear from the signature
-function deleteIfCanceled(taskGr, defaultAnswer, stateValue) { /* ... */ }
+function deleteIfCanceled(grTask, defaultAnswer, stateValue) { /* ... */ }
 ```
 
 Short loop counters (`i`, `j`) are fine. One- or two-letter names for anything else are not.
+
+### Function Design
+
+- **Single responsibility** — every function does one thing. If the name needs "and" to describe it, split it. This applies inside Script Includes too: many small focused methods beat one method that orchestrates everything inline.
+- **Prefer a ternary for simple conditional assignment** — `var label = isVip ? 'Priority' : 'Standard';` reads better than a four-line `if/else` that only assigns. Use `if/else` when branches have side effects or logic; **never nest ternaries** — a nested ternary is always less readable than the `if/else` it replaced.
+- **Private helpers start with `_`** — inside a Script Include, methods not intended to be called from outside the class are prefixed with an underscore (e.g. `_recalculateTotals`). The platform does not enforce privacy; the prefix is the documented signal "call this from inside this SI only," and reviewers (and agents) must treat it as such.
+- **Nested / inner functions are fine in Script Includes** — a parent method may define small inner helper functions when they are only meaningful to that method. The single-responsibility goal still applies to each inner function; if an inner helper is useful to more than one method, promote it to a `_private` method on the class.
+- **JSDoc on every method** — the [JSDoc Headers on Functions](#code-readability) rule above is not optional polish. Agents: generate the header with every method you write; a method without `@param`/`@return` documentation is incomplete.
 
 ### Cache Repeated Function Results
 
@@ -134,17 +217,17 @@ If a function returns the same value throughout a code block, call it once and s
 
 ```javascript
 // ❌ BAD — four identical calls
-if (gs.getUserID() == currentRec.getValue('assigned_to') ||
-    gs.getUserID() == currentRec.getValue('u_coordinator') ||
-    gs.getUserID() == currentRec.getValue('caller_id') ||
-    gs.getUserID() == currentRec.caller_id.manager.toString()) { /* ... */ }
+if (gs.getUserID() == grCurrent.getValue('assigned_to') ||
+    gs.getUserID() == grCurrent.getValue('u_coordinator') ||
+    gs.getUserID() == grCurrent.getValue('caller_id') ||
+    gs.getUserID() == grCurrent.caller_id.manager.toString()) { /* ... */ }
 
 // ✅ GOOD — single call, named intermediates
 var currentUserId = gs.getUserID();
-var isOwner       = currentUserId == currentRec.getValue('assigned_to');
-var isCoordinator = currentUserId == currentRec.getValue('u_coordinator');
-var isCaller      = currentUserId == currentRec.getValue('caller_id');
-var isCallerMgr   = currentUserId == currentRec.caller_id.manager.toString();
+var isOwner       = currentUserId == grCurrent.getValue('assigned_to');
+var isCoordinator = currentUserId == grCurrent.getValue('u_coordinator');
+var isCaller      = currentUserId == grCurrent.getValue('caller_id');
+var isCallerMgr   = currentUserId == grCurrent.caller_id.manager.toString();
 
 if (isOwner || isCoordinator || isCaller || isCallerMgr) { /* ... */ }
 ```
@@ -162,7 +245,7 @@ function saveRecord(gr) {
     return !gs.nil(sysId);
 }
 
-if (!saveRecord(currentRec)) {
+if (!saveRecord(grCurrent)) {
     gs.addErrorMessage(gs.getMessage('record.save_failed'));
 }
 ```
@@ -175,16 +258,19 @@ Dot-walking through empty references, reading `vaVars` that may be coerced to `"
 // ❌ BAD — throws warnings if cmdb_ci or installed_on is empty
 var tableName = current.cmdb_ci.installed_on.sys_class_name;
 
-// ✅ GOOD — guard first
-var tableName = current.cmdb_ci.installed_on.getValue('sys_class_name');
-if (tableName) {
+// ✅ GOOD — getElement() officially supports dot-walked paths and returns a guardable element
+var classEl = current.getElement('cmdb_ci.installed_on.sys_class_name');
+if (classEl && !classEl.nil()) {
+    var tableName = classEl.toString();
     // safe to use
 } else {
     gs.warn('[MyBR] sys_class_name unavailable for ' + current.getDisplayValue());
 }
 ```
 
-**vaVars gotcha:** null values in `vaVars` can be coerced to the string `"null"`. Use truthy checks, not `== null` or `== ''` comparisons.
+When several fields are needed from the referenced record, call `getRefRecord()` once and check `isValidRecord()` instead of guarding each path. Note that `getValue('field')` exists on **GlideRecord only** — there is no `GlideElement.getValue(field)`, so it cannot be chained onto a dot-walk.
+
+**vaVars gotcha:** null values in `vaVars` can be coerced to the literal string `"null"` — which is *truthy*, so a plain truthy check passes exactly the case being guarded against. Check explicitly: `if (val && val != 'null' && val != 'undefined')`.
 
 ### Avoid `eval()`
 
@@ -251,8 +337,43 @@ The same principle applies in the browser:
 
 - **Upgrade safety** — ServiceNow can change the internal representation of a field type between releases; the documented setter/getter is the stable contract
 - **Audit and journal correctness** — `current.work_notes = 'x'` and `current.setValue('work_notes', 'x')` do not always produce the same audit entry on journal-input fields
-- **Reference-field hygiene** — `current.assigned_to = userGr` (passing a `GlideRecord`) silently coerces in ways that differ from `setValue('assigned_to', userGr.getUniqueValue())` and can break on upgrade
+- **Reference-field hygiene** — `current.assigned_to = grUser` (passing a `GlideRecord`) silently coerces in ways that differ from `setValue('assigned_to', grUser.getUniqueValue())` and can break on upgrade
 - **Reviewability** — the principle makes intent explicit at the call site, which is the single biggest factor in code-review speed for ServiceNow scripts
+
+---
+
+## Do Not Use
+
+Consolidated quick-reference of banned or near-banned patterns. Each links back to the section with the full rule and reasoning.
+
+| Never (or almost never) use | Use instead | Section |
+|---|---|---|
+| `eval()` | Direct code; redesign | [Code Readability](#code-readability) |
+| `getReference()` (any form) | GlideAJAX | [GlideAJAX](#glideajax) |
+| Synchronous GlideRecord / GlideAjax client-side | GlideAJAX with callback | [Client Scripts](#client-scripts) |
+| DOM manipulation (`document.*`, jQuery, `g_form.getElement()`/`getControl()`, `gel()`) in Client Scripts | `g_form` value/state API | [Client Scripts](#client-scripts) |
+| `getRowCount()` for counting | `GlideAggregate` | [GlideRecord](#gliderecord) |
+| Nested GlideRecord loops | Hash map / `addJoinQuery()` | [GlideRecord](#gliderecord) |
+| `forEach` server-side | `map`/`filter`/`reduce`; `while` for `.next()` | [General Coding Standards](#general-coding-standards) |
+| Dot-walking sys_ids | `getValue('field')` | [General Coding Standards](#general-coding-standards) |
+| Collecting `gr.field` / `gr.sys_id` objects into arrays or JSON | `getValue()` / `getUniqueValue()` at the point of collection | [GlideRecord](#gliderecord) |
+| Nested ternaries | `if/else` | [Code Readability](#code-readability) |
+| `current.update()` in a before BR | Nothing — the save is coming | [Business Rules](#business-rules) |
+| `setWorkflow(false)` without documented reason | Let automation run | [Business Rules](#business-rules) |
+| `gs.sleep()` | Wait-for-condition (flows); event-driven design | [Flow Designer](#flow-designer) |
+| `gs.log()` / `console.log()` in permanent code | Tiered logging APIs | [Logging](#logging) |
+| Hardcoded sys_ids | Properties, queries by attribute | [Script Includes](#script-includes) |
+| Hardcoded instance URLs (anywhere) | `glide.servlet.uri` property; instance suffix in notifications | [General Coding Standards](#general-coding-standards) |
+| Renaming a used email template | Leave the name; create new | [Notifications](#notifications) |
+| Workflows (legacy) for new automation | Flow Designer | [Flow Designer](#flow-designer) |
+| Merging update sets | Batching | [Update Sets](#update-sets) |
+| Backing out update sets | Roll forward with a hotfix set | [Update Sets](#update-sets) |
+| Modifying OOTB Script Includes | New custom SI in your scope | [Script Includes](#script-includes) |
+| Unprefixed Script Include calls | `new scope.ClassName()` always | [Script Includes](#script-includes) |
+| GlideQuery in new code | GlideRecord | [GlideRecord](#gliderecord) |
+| `getXML()` in GlideAjax | `getXMLAnswer()` | [GlideAJAX](#glideajax) |
+| External data written directly to target tables | Import Set + Transform Map | [Import Sets & Transform Maps](#import-sets--transform-maps) |
+| Copying attachments | Move or reference | [Attachments](#attachments) |
 
 ---
 
@@ -275,13 +396,22 @@ Use `sys_properties` for configuration values. Never hardcode values in scripts 
 
 > ❌ Do not use `sys_properties` if values are dynamic, per-object, or vary across multiple app instances — use a dedicated configuration table instead.
 
+<details><summary><b>Why the split?</b></summary>
+
+- **Properties are instance-wide and cached** — `gs.getProperty()` reads from cache, which is what makes them cheap; but *writing* a property flushes that cache across the instance. A value that changes often (or per record) written into `sys_properties` causes repeated cache flushes that degrade the whole instance — which is exactly why the rule says "set once, rarely changed, single instance."
+- **User Preferences exist for per-user state** — they're keyed per user with a global default, so reinventing that on `sys_properties` means building name-mangling (`property.username`) the platform already does for you.
+- **A settings table wins when there are N instances of a setting** — properties are a flat key/value namespace; the moment a setting varies per board/team/integration, rows in a table give you references, ACLs, and a UI for free instead of JSON stuffed into one property.
+
+</details>
+
+
 ---
 
 ## GlideRecord
 
 **General rules:**
 - Use `getValue('field')` to extract field values — dot-walking returns a `GlideElement` object, not the value
-- Variable naming: `descriptiveNameGr` e.g. `incidentGr`
+- Variable naming: **Glide-type prefix + table/purpose** — `grUser` is a GlideRecord (or GlideRecordSecure) on `sys_user`, `gaIncident` a GlideAggregate on incident. The prefix tells the reader the API; the rest tells them the data. Standard prefixes: `gr` (GlideRecord and GlideRecordSecure), `ga` (GlideAggregate), `gdt` (GlideDateTime), `gd` (GlideDate), `gsa` (GlideSysAttachment). Non-Glide variables keep the type-hint style (`membersArr`, `configObj`).
 - Never nest GlideRecord queries inside other GlideRecord loops — use hash maps or join queries
 
 **Query efficiency:**
@@ -290,20 +420,30 @@ Use `sys_properties` for configuration values. Never hardcode values in scripts 
 - Use `setLimit(1)` when only confirming existence — this tells the database to stop after one match instead of returning and counting the whole result set:
   ```javascript
   // ❌ BAD — retrieves every active incident just to check one exists
-  var incGr = new GlideRecord('incident');
-  incGr.addQuery('active', true);
-  incGr.query();
-  if (incGr.hasNext()) { /* ... */ }
+  var grInc = new GlideRecord('incident');
+  grInc.addQuery('active', true);
+  grInc.query();
+  if (grInc.hasNext()) { /* ... */ }
 
   // ✅ GOOD — database returns at most one row
-  var incGr = new GlideRecord('incident');
-  incGr.addQuery('active', true);
-  incGr.setLimit(1);
-  incGr.query();
-  if (incGr.hasNext()) { /* ... */ }
+  var grInc = new GlideRecord('incident');
+  grInc.addQuery('active', true);
+  grInc.setLimit(1);
+  grInc.query();
+  if (grInc.hasNext()) { /* ... */ }
   ```
 - Use `addJoinQuery()` instead of nesting a GlideRecord inside another GlideRecord loop
 - Use Related List Query (RLQUERY) when filtering by a specific count of related records — `addJoinQuery()` can only test for existence (≥1), not exact counts
+
+<details><summary><b>Why these query rules?</b></summary>
+
+- **No nested GlideRecords** — a query inside a `while (grOuter.next())` loop is the classic N+1 problem: 10,000 outer rows means 10,001 database queries. Loading the lookup side once into a hash map (or using `addJoinQuery()`) turns that into 2 queries total. The difference is seconds vs. minutes on real data sets.
+- **`addEncodedQuery()` for complex conditions** — an encoded query is copy-pasteable from a list filter (build it in the UI, copy query, paste in code), reads as one auditable string, and avoids subtle operator-precedence mistakes when mixing `addQuery`/`addOrCondition` chains.
+- **`GlideAggregate` for counting** — `getRowCount()` only knows the answer after the platform has retrieved and instantiated every row; `GlideAggregate` asks the database for `COUNT(*)` and transfers one number.
+- **`setLimit(1)` for existence checks** — same principle: tell the database to stop at the first match instead of materialising the full result set you're about to throw away.
+
+</details>
+
 
 **Always test queries on a sub-production instance before deploying to production.** An invalid encoded query silently drops the invalid condition and may return all records — running `update()`, `deleteRecord()`, or `deleteMultiple()` on that result can cause data loss.
 
@@ -313,21 +453,83 @@ Use `sys_properties` for configuration values. Never hardcode values in scripts 
 - If the target table does not have an `active` field, then fall back to state value checks.
 ```javascript
 // ✅ GOOD — open vs. closed check
-interactionGr.addQuery('active', true);
+grInteraction.addQuery('active', true);
 
 // ❌ BAD — hardcoding state values for a simple open/closed check
-interactionGr.addQuery('state', '!=', '7');
-interactionGr.addQuery('state', 'NOT IN', '3,7,8');
+grInteraction.addQuery('state', '!=', '7');
+grInteraction.addQuery('state', 'NOT IN', '3,7,8');
 
 // ✅ OK — querying a specific state for business logic
-incidentGr.addQuery('state', '2'); // Need specifically "In Progress"
+grIncident.addQuery('state', '2'); // Need specifically "In Progress"
 ```
+
+### GlideElement — Extract Early, Hold Deliberately
+
+Every field access on a GlideRecord (`gr.field`, any dot-walk) returns a **GlideElement** — it is the platform's field wrapper, not an alternative API you opt into. The standard is about *when to let go of it*:
+
+- **Default: extract immediately** — `getValue()` / `getDisplayValue()` / `getUniqueValue()` at the point of access, then operate on plain strings and numbers. Direct element comparisons in conditions stay fine (`if (current.state == 6)`) — see [Official API Preference](#official-api-preference)
+- **The aliasing trap (the reason the rule exists):** a GlideElement is a **live reference to the query cursor's current row**. Collect elements in a loop and every entry points at the same object — after the loop they all hold the *last* row's value, and `JSON.stringify` on them misbehaves:
+
+  ```javascript
+  // ❌ BAD — N references to one live element; every entry ends up as the last row
+  var idsArr = [];
+  while (grTask.next()) {
+      idsArr.push(grTask.sys_id);
+  }
+
+  // ✅ GOOD — primitives copied out at the point of collection
+  var idsArr = [];
+  while (grTask.next()) {
+      idsArr.push(grTask.getUniqueValue());
+  }
+  ```
+
+- **Hold the element deliberately** only for the operations that exist nowhere else: `changes()` / `changesTo()` / `changesFrom()` (Business Rules), `nil()`, `getRefRecord()` (hop to the referenced record), `getED()` (dictionary metadata), `dateNumericValue()` (epoch ms straight off a date/time field — pairs with the Unix-ms-to-client rule), and the guarded dot-walk read via `getElement('a.b.c')`
+- **Never pass a GlideElement across a boundary** — into a JSON payload, an array, an event parm, or anything that outlives the loop iteration. Coerce first
+
+> **Name-collision warning:** server-side `GlideElement` and `GlideRecord.getElement()` have nothing to do with the DOM — they are pure data APIs. The *client-side* `g_form.getElement()` is an unrelated method that returns a DOM node and falls under the no-DOM rule in [Client Scripts](#client-scripts).
+
+### GlideQuery
+
+**Use GlideRecord. Do not introduce GlideQuery into new code.** GlideQuery is an alternative API, not a successor — maintain it where you find it in existing code, but these standards build on GlideRecord.
+
+<details><summary><b>Why not GlideQuery?</b></summary>
+
+- **It is a wrapper over GlideRecord**, so it always carries overhead the underlying API does not — and these standards prefer the speed.
+- **Its main selling point is mitigated here.** GlideQuery's fail-fast behaviour (throwing on invalid field names where GlideRecord silently drops the condition) protects developers from typo-class mistakes — a real GlideRecord trap, covered by the sub-production testing rule above. Code written to these standards, with queries tested before deployment, gets that protection without the wrapper.
+- **It is not the platform direction.** In the words of GlideQuery's own creator: "GlideRecord is never going away. GlideQuery is merely an alternative API available." Standardising on the alternative buys inconsistency with every other pattern in this document for no platform-strategic gain.
+- **It is itself a global-scope Script Include** (baseline since Paris — no plugin needed on current releases, though very old instances distributed it as an app). That means scoped code must call it as `new global.GlideQuery(...)` — and an unprefixed call fails exactly the way the scope-prefix rule in [Script Includes](#script-includes) warns about. One more way for generated code to break subtly.
+- If a project has deliberately adopted GlideQuery wholesale, that is a defensible team choice — but it is a deviation from these standards, and the never-mix-paradigms-in-one-artifact rule still applies.
+
+</details>
+
+---
+
+## Performance at Scale
+
+The [GlideRecord](#gliderecord) rules cover query hygiene; this section covers what changes when tables get big and jobs run long.
+
+- **Indexes:** if a new query filters or sorts a large table on unindexed fields — especially if it shows up in *Slow Queries* — request a database index on those fields. Index creation on a large table is itself an impactful operation: schedule it and confirm with the user first (see [Agent Ground Rules](#agent-ground-rules)).
+- **Chunk large jobs:** never process tens of thousands of rows in one unbounded loop/transaction. Window the work — `setLimit(N)` batches ordered by `sys_id` (cursor = last processed sys_id), or split by query slices — so each transaction stays well under platform quotas and a failure loses one window, not the whole run.
+- **`updateMultiple()` / `deleteMultiple()`** beat per-row loops for uniform changes, but inherit the encoded-query danger: an invalid condition silently broadens the result. Test the exact query on sub-production first, and treat these as confirm-first operations.
+- **Cache lookups:** anything you would query repeatedly inside a loop belongs in a hash map built once before the loop (same principle as the nested-query ban). `gs.getProperty()` is cache-backed and fine to call freely.
+- **Async when nobody is waiting:** heavy post-processing belongs in async BRs, events, or scheduled work — never in the user's transaction (see [Business Rules](#business-rules)).
+- **Watch the evidence:** *Slow Queries*, transaction logs, and scheduled-job duration trends are the feedback loop — review them while developing, not after go-live (see [Operational Hygiene](#operational-hygiene)).
+
 ---
 
 ## GlideForm
 
 - Client-side only — always accessed via the global `g_form` object
 - Never use `g_form` in UI Policies — use a Client Script if scripting is required
+
+<details><summary><b>Why keep scripts out of UI Policies?</b></summary>
+
+- **Declarative actions are upgrade-safe and self-documenting** — a reviewer (or an upgrade-impact tool) can read a UI Policy's conditions and actions without executing anything. Script buried in a policy's *Execute if true* hides logic where nobody looks for it.
+- **Execution-order surprises** — UI Policies and Client Scripts run at defined but different points in form lifecycle; mixing `g_form` mutations into policies creates ordering interactions that are painful to debug. Keeping scripting in Client Scripts means all imperative form logic lives in one reviewable place.
+
+</details>
+
 
 ### setValue on Reference Fields
 
@@ -356,15 +558,25 @@ When the display value isn't known client-side, retrieve both via a single Glide
 | After save | Business Rule or Flow |
 
 **Avoid:**
-- `getReference()` with callback — not preferred
-- GlideRecord with callback — not preferred
-- `getReference()` without callback — **very bad practice** (synchronous, blocks the browser)
-- GlideRecord without callback — **very bad practice** (synchronous, blocks the browser)
+- `getReference()` with callback — avoid; GlideAJAX answers the same question with a leaner payload
+- Client-side GlideRecord with callback — avoid, for the same reason
+- `getReference()` without callback — **never** (synchronous, blocks the browser)
+- Client-side GlideRecord without callback — **never** (synchronous, blocks the browser)
 
 **Implementation rules:**
-- Client side: always use `getXMLAnswer()` + `JSON.parse()` to handle the response
+- Client side: always use `getXMLAnswer()` + `JSON.parse()` to handle the response — **never `getXML()`**, which is the older pattern that returns the full XML response document and forces manual DOM walking for the same answer
 - Max 1 AJAX call per client script
-- For Service Catalog, always use GlideAJAX — there is no table on which to trigger Business Rules
+- For Service Catalog, always use GlideAJAX — the item form is not backed by a record before submission, so Display BRs / `g_scratchpad` cannot supply data
+
+<details><summary><b>Why these AJAX rules?</b></summary>
+
+- **Synchronous calls freeze the browser** — `getReference()` / GlideRecord without a callback block the UI thread until the server answers; on a slow connection the form simply hangs. Every server trip from a Client Script must be asynchronous.
+- **`getXMLAnswer()` + `JSON.parse()`** — `getXMLAnswer` hands you just the `answer` attribute (skipping manual XML DOM walking), and returning one JSON object lets a single round trip carry every value the script needs, parsed in one line.
+- **Max 1 AJAX call per Client Script** — each call is a full network round trip triggered by user interaction. Two calls double the latency the user feels and can race each other; one consolidated AJAX SI method returning a single JSON payload is faster and deterministic.
+- **Display BR + `g_scratchpad` for onLoad** — the form is already making a server trip to load the record; the Display BR piggybacks the extra data on that same trip, so the form arrives with everything it needs and zero additional requests.
+
+</details>
+
 
 ---
 
@@ -374,6 +586,7 @@ When the display value isn't known client-side, retrieve both via a single Glide
 - Avoid generic names (e.g. `AbcUtils`) — name reflects the target table or responsibility
 - No `eval`; no hardcoded sys_ids
 - Single responsibility — separate functions for reusability across server-side components
+- **Always call Script Includes with the scope prefix** — `new global.SNIncidentService()`, `new x_vaultflip.VaultService()` — even from within the same scope. Cross-scope calls *require* the prefix and fail without it (often silently, or with a misleading error that points nowhere near the real cause); prefixing everywhere costs nothing, makes every call site unambiguous about where the class lives, and means code keeps working when it is copied into another scope's context (flows, fix scripts, background scripts).
 
 **Server-side SI:**
 - One SI per target table
@@ -383,9 +596,39 @@ When the display value isn't known client-side, retrieve both via a single Glide
 - Named `[PREFIX][TargetTable]ServiceAjax` e.g. `SNIncidentServiceAjax`
 - Extends `AbstractAjaxProcessor`
 - No `initialize()` method
-- Thin wrapper only — delegates all logic to the corresponding server-side SI
+- Thin wrapper only — the standard call chain is **Client Script → AJAX (client-callable) SI → non-client-callable server SI**. The AJAX class reads/validates parameters and delegates; all real logic lives in the server SI where BRs, jobs, flows, and tests can also call it
+- **Trivial-lookup exception:** tiny, logic-free reads that a Client Script cannot do itself (e.g. returning a system property value) may live directly in the AJAX SI — but the moment there is actual logic, it routes through the server SI
 - Returns JSON, not plain strings
-- Always `stringify(getParameter('param_name'))` when reading AJAX params
+- Always coerce parameters at the boundary: `var value = String(this.getParameter('sysparm_value'));` — and name every GlideAjax parameter with the `sysparm_` prefix
+
+<details><summary><b>Why these Script Include rules?</b></summary>
+
+- **Class, not a loose function** — the platform's client-callable machinery (and `AbstractAjaxProcessor`) expects a prototype whose name matches the SI record; classes also give you `this`-scoped state and extension. Bags of global functions can't be safely extended or called from the AJAX layer.
+- **One SI per table, named `[PREFIX][Table]Service`** — everyone (including an AI assistant) can predict where the logic for a table lives without searching. Generic `Utils` grab-bags grow until nobody knows what's safe to change.
+- **AJAX SI is a thin wrapper** — the AJAX layer is transport + security only. If logic lives in the server SI, it's callable from BRs, jobs, flows, and tests; if it lives in the AJAX class, it's reachable only from a browser.
+- **No `initialize()` in AJAX SIs** — `AbstractAjaxProcessor` supplies its own `initialize()` that wires up request parameters; overriding it breaks `getParameter()` silently.
+- **`String(this.getParameter(...))`** — parameters arrive as Java string objects, not JavaScript strings; comparisons and `JSON.parse` can misbehave until coerced. Coerce once at the boundary and everything downstream behaves.
+
+</details>
+
+### Reuse Before You Create
+
+**Before creating any new Script Include or method, check what already exists.** Duplicated logic is the fastest way to rot a codebase: two copies drift, and every future fix lands in only one of them. This rule is directed at human developers and AI agents equally — agents are especially prone to generating a fresh SI for every task.
+
+The check is two-step, in order:
+
+1. **Does a relevant Script Include already exist?** Search by the naming convention first (`[PREFIX][TargetTable]Service` — the table you are working on tells you the expected name), then search SI names and contents for the domain term. If it exists, you are *adding to it*, not creating a sibling.
+2. **Does the function/method already exist on it?** Read the existing SI's methods before writing. If the capability exists, call it. If it almost exists, extend or parameterise the existing method rather than writing a near-duplicate beside it. Only when the SI exists but the capability genuinely does not: **add a new method to the existing SI** — do not create a new Script Include for one new function.
+
+Creating a *new* SI is correct only when no SI owns that table/responsibility yet (per the one-SI-per-table rule above).
+
+**Discovery takes judgment, not just the naming convention.** The `[PREFIX][Table]Service` convention is the *first* place to look, not the only one — previous developers or agents may not have followed it. Also search Script Include names, descriptions, and contents for the table name and the business/domain terms, and skim near-miss custom SIs to judge whether the new logic plausibly belongs in one of them. If it is a genuine judgment call which existing SI should own it, confirm with the user (see [Agent Ground Rules](#agent-ground-rules)) rather than guessing.
+
+**Never modify out-of-the-box Script Includes.** Customising a baseline SI breaks upgrade safety and is forbidden. Extending an OOTB SI (class extension) is technically possible and occasionally the right tool, but the default for new logic is a **separate custom SI in your scope** that calls or wraps platform APIs as needed.
+
+**The Constants SI is a singleton — never duplicate it.** The entire purpose of a central constants Script Include is one authoritative home for shared values. If a constants SI exists for the scope, every new constant goes in it. A second constants SI (or constants scattered into other SIs) silently forks the source of truth and defeats `Object.freeze` discipline. Agents: search for an existing constants SI before declaring any new constant container.
+
+
 
 ---
 
@@ -406,6 +649,12 @@ Simple date/time validations in record producers or catalog items may use a UI P
 
 **Catalog UI Policies:**
 - Set the *When to apply* checkboxes correctly — determine whether the policy should run on the catalog item, the target record, or both
+
+### UI Policy vs. Data Policy
+
+UI Policies act **client-side only** — they shape the form and nothing else. Records arriving through imports, REST/Table API, flows, or scripts never see them. When the rule is about **data integrity** (a field that must always be present, or must never change past a state), use a **Data Policy**: it enforces mandatory/read-only server-side on every write path, and can additionally be pushed to forms with *Use as UI Policy on client*.
+
+Rule of thumb: cosmetics and UX → UI Policy; integrity → Data Policy (optionally surfaced on the form as well). Never hand-maintain the same rule as both — that is two records to drift apart.
 
 ---
 
@@ -447,13 +696,33 @@ Business Rules execute server-side logic in response to database operations. The
 
 ### Preventing Recursive / Runaway BRs
 
-- If an after BR updates the same record, it re-triggers before/after BRs on that table — guard with `current.update()` avoidance or a recursion flag (`gs.getSession().putClientData()` or a script-scoped variable)
+- If an after BR updates the same record, it re-triggers before/after BRs on that table — guard by avoiding `current.update()`, or use a recursion flag (`gs.getSession().putClientData()` or a script-scoped variable)
 - For bi-directional integrations, filter out updates by the integration user (see the Integrations — General section on loop prevention)
 - Never modify `current` inside an **after** BR — changes are silently lost because the record is already committed; if you need to update the same record, use `GlideRecord` with `setWorkflow(false)` and `autoSysFields(false)` and accept the trade-offs
 
 ### Naming
 
 Follow the standard: `PREFIX - Description` (e.g. `SN - Set Priority on Create`). Include the timing in the description if it aids clarity (e.g. `SN - Before - Validate Mandatory Fields`).
+
+---
+
+## Events
+
+`gs.eventQueue()` is an architectural tool, not just a notification trigger. Use it to **decouple**: the Business Rule stays a thin detector ("this happened"), and a Script Action or notification responds asynchronously.
+
+- **Register every event** in the Event Registry before queuing it; name it `prefix.table.action` (e.g. `sn.incident.escalated`)
+- **Use events when** the side effect does not need to block the transaction: notifications, kicking off integrations, metrics, downstream record creation
+- **Do not use events for** synchronous validation or anything the user must see in the same transaction — that is before/after BR territory
+- The record reference *is* the payload — use `parm1`/`parm2` sparingly for context the responder cannot derive from the record
+- **Every queued event must have a responder** (notification or Script Action). An event nobody listens to is pure waste — see [Operational Hygiene](#operational-hygiene) on detecting orphaned events
+
+<details><summary><b>Why decouple with events?</b></summary>
+
+- **Transaction speed** — the user's save returns as soon as the event is queued; the heavy work happens on the event processor.
+- **Independent evolution** — adding a second responder (a new notification, an extra integration) requires zero changes to the BR that fires the event.
+- **Failure isolation** — a failing responder doesn't abort the user's transaction the way a failing inline after-BR can.
+
+</details>
 
 ---
 
@@ -482,7 +751,7 @@ Client Scripts run in the user's browser and control the form experience. They a
   ```
 - **Prefer UI Policies** for simple show/hide, mandatory, and read-only control — only use a Client Script when scripting logic is required
 - **Avoid `g_form.getReference()`** — it is either synchronous (very bad) or callback-based but still less efficient than GlideAJAX; GlideAJAX is always preferred
-- **Minimise DOM manipulation** — do not use `document.getElementById()`, `jQuery`, or direct DOM access; use the `g_form` API exclusively. Direct DOM manipulation breaks on form redesigns, is not supported in Service Portal, and can be overwritten by the platform at any time
+- **No DOM manipulation** — do not use `document.getElementById()`, `jQuery`, or direct DOM access; use the `g_form` API exclusively. **"The g_form API" means its value/state methods** — `g_form.getElement()` and `g_form.getControl()` return DOM nodes and are part of the ban, as is the legacy `gel()` shorthand. Direct DOM manipulation breaks on form redesigns, is not supported in Service Portal or workspaces, and can be overwritten by the platform at any time
 
 ### Service Portal Considerations
 
@@ -494,7 +763,7 @@ Client Scripts run in the user's browser and control the form experience. They a
 
 - Client Scripts run on every form load/change for their table — keep them fast
 - If an onChange script calls GlideAJAX, consider debouncing or guarding against rapid consecutive changes (e.g. check if the value actually changed before making the call)
-- Use the **Applies to** field (Desktop, Mobile, or Both) to avoid running desktop-only logic on mobile devices
+- **UI Type: default to All (Desktop + Mobile)** — always create Client Scripts with UI Type = All unless the logic is genuinely desktop-only (e.g. DOM-adjacent behaviour that mobile does not render). A script left on Desktop-only silently does nothing for mobile users, and the resulting "validation works on my machine" bugs are expensive to trace. Restricting to one UI type is the documented exception, not the default.
 
 ### Naming
 
@@ -502,22 +771,116 @@ Follow the standard: `PREFIX - Description` (e.g. `SN - onChange - Set Category 
 
 ---
 
+## UI Actions
+
+UI Actions put buttons, links, and context-menu entries on forms and lists. They are glue, not a home for logic.
+
+**Core rules:**
+
+- **Keep them thin** — a UI Action body is a condition check plus a Script Include call (server) or a `g_form` interaction plus submit (client). Business logic lives in the SI, exactly as for Business Rules
+- **Always set the Condition field** — an unconditioned action appears everywhere the table does, including places it makes no sense
+- **Set `Action name`** (`lower_snake_case`, e.g. `sn_request_approval`) on any action submitted programmatically — it is the stable handle; the label is for humans and may be reworded
+- **Set the Insert / Update checkboxes deliberately** — the wrong combination shows save-style actions on records that do not exist yet, or hides them after first save
+- **No hardcoded redirect URLs** — use `action.setRedirectURL(current)` / `action.setReturnURL()`; hardcoded paths break across UIs and instances
+
+### Classic forms — client + server in one action
+
+When an action needs client-side validation *and* server-side work, use one UI Action with *Client* checked. On classic forms, `g_form` is a page **global** and the server portion is triggered with `gsftSubmit`:
+
+```javascript
+// Onclick: validateAndSubmit()  — g_form is a global here
+function validateAndSubmit() {
+    if (!g_form.getValue('assignment_group')) {
+        g_form.addErrorMessage(getMessage('prefix.task.group_required'));
+        return false;
+    }
+    gsftSubmit(null, g_form.getFormElement(), 'sn_request_approval'); // Action name, not the label
+}
+
+// Server block in the same UI Action — runs only on the submit above
+if (typeof window == 'undefined')
+    new x_scope.SNTaskService().requestApproval(current);
+```
+
+### The same action in a Workspace
+
+A UI Action can run on classic forms, in Configurable / Agent Workspace, or both — but the two surfaces execute the **client** portion on completely different frameworks. A UI Action built for a classic form does **not** automatically work in a workspace, and its client script almost always has to be rewritten.
+
+**Enabling it:** the action must be marked **Client**, and surfaced via **Workspace Form Button** / **Workspace Form Menu** (plus **Format for Configurable Workspace**). The client logic goes in the **Workspace Client Script** field — a different field from the classic Script field. (A Declarative / UX Form Action is the alternative when you want the button defined in UI Builder rather than on the UI Action record — see [UI Builder](#ui-builder-next-experience).)
+
+**What differs, concretely:**
+
+| | Classic form | Workspace |
+|---|---|---|
+| `g_form` | page global | **passed in**: `function onClick(g_form) { … }` |
+| Trigger the server portion | `gsftSubmit(null, g_form.getFormElement(), 'action_name')` | `g_form.submit('action_name')` — **returns a Promise** |
+| Modal / prompt | `GlideModal` / form dialogs | `g_modal.confirm` / `g_modal.showFields` / `g_modal.showFrame` (Promise- or callback-based) |
+| In-app navigation | `action.setRedirectURL()` (server) | `g_aw.openRecord(table, sysId, params)` (client) |
+| DOM | reachable (but banned — see [Client Scripts](#client-scripts)) | not available at all |
+
+```javascript
+// Workspace Client Script field (referenced from the Onclick field)
+function onClick(g_form) {              // g_form is an argument, not a global
+    g_modal.showFields({               // Promise-based prompt — replaces GlideModal
+        title: getMessage('Provide a reason'),
+        fields: [{ type: 'textarea', name: 'work_notes', label: getMessage('Reason'), mandatory: true }],
+        size: 'lg'
+    }).then(function(fieldValues) {
+        g_form.setValue('work_notes', fieldValues.updatedFields[0].value);
+
+        var result = g_form.submit('sn_request_approval'); // runs the server block below
+        if (!result) return;                                // falsy if the submit was blocked
+        result.then(function() {                            // server work is done — now navigate
+            g_aw.openRecord('change_request', -1, { sysparm_parent_sys_id: g_form.getUniqueValue() });
+        });
+    });
+}
+
+// Script field — server portion: SAME typeof guard and SAME Script Include as the classic action
+if (typeof window == 'undefined')
+    new x_scope.SNTaskService().requestApproval(current);
+```
+
+**Make the server portion surface-agnostic.** The `typeof window == 'undefined'` block calls the same Script Include no matter where the click came from — `new x_scope.SNTaskService().requestApproval(current)` behaves identically whether triggered by `gsftSubmit` or `g_form.submit`. Only the thin client wrapper changes per surface. **Never fork the real server logic** between a classic action and a workspace action; if both surfaces are in scope, that is one server implementation and two ~5-line client wrappers.
+
+**Workspace client APIs worth knowing** (full surface lives in SN Docs — verify for your release):
+
+- `g_form.submit('action_name')` — runs the named action's server portion; **returns a Promise**, so chain post-server work (navigation, refresh) in `.then()`. A falsy return means the submit was blocked
+- `g_form.save()` — persists the record **without** invoking a named action
+- `g_modal.showFields({ fields }).then(v => v.updatedFields[i].value)` — prompt for field values; `g_modal.confirm(...)` for yes/no; `g_modal.showFrame({ url })` to host a UI page in a modal (reusing classic UI pages this way is awkward — prefer native fields)
+- `g_aw.openRecord(table, sysId, params)` and the other `g_aw` navigation helpers
+- `getMessage('key')` for i18n — same as classic
+
+<details>
+<summary><strong>Why does a working classic client script go dead in a workspace?</strong></summary>
+
+They run on different client frameworks. Classic forms expose `g_form` and `gsftSubmit` as page globals and submit the whole form; a workspace is a component-based single-page app where `g_form` is handed to your function as a parameter, `gsftSubmit` does not exist, and server work is invoked through the Promise-returning `g_form.submit()`. A classic client script doesn't throw a clean error in a workspace — it silently does nothing, because the globals it reaches for aren't there. Treat "works on the form, dead in the workspace" as the expected default until the Workspace Client Script is written.
+</details>
+
+> **Not to be confused with** the standalone **Workspace Client Scripts** artifact — onLoad / onChange / onSubmit logic for workspace forms, the workspace analogue of classic Client Scripts. It uses the same passed-in-`g_form` model and follows the [Client Scripts](#client-scripts) rules; its event API is in SN Docs. The above is specifically the client script *attached to a UI Action*.
+
+**Naming:** the label is what users see — Title Case, verb-first (`Request Approval`). The internal `Action name` follows `prefix_description`.
+
+---
+
 ## Access Control Lists (ACLs)
 
-ACLs are the primary mechanism for securing data in ServiceNow. Every table and field that stores sensitive or restricted data must have explicit ACL rules.
+ACLs are the primary mechanism for securing data in ServiceNow. **This section deliberately does not restate how ACL evaluation works** — the official docs cover the mechanics and stay current as the platform changes. What follows is the judgment layer: design rules, hardening, and verification.
 
-### How ACL Evaluation Works
+Three platform facts shape every design decision below. Verify the details in the official docs, but do not design against a different mental model:
 
-ServiceNow evaluates ACLs in order from most specific to least specific: **field-level → table-level → table wildcard (`table.*`)**. The system looks for a matching rule at each level and stops at the first match. If **no ACL exists** for a given operation on a table, access is granted by default (unless the `glide.sm.default_mode` property is set to `deny`) — this means a missing ACL is effectively an open door.
+1. **Table and field ACLs are both required** — a user must pass the matching table ACL *and* the matching field ACL to touch a field. Failing the table rule denies everything, regardless of field rules.
+2. **Multiple matching rules at the same level are OR'd** — passing any one grants access. Adding another ACL on the same object/operation can only *widen* access, never narrow it; to tighten, change the existing rule.
+3. **Modern instances are default-deny** — High Security Settings (active on current instances) ships wildcard table ACLs plus `glide.sm.default_mode = deny`, so the absence of a specific rule falls through to the wildcards, not to open access. Never *rely* on fall-through in either direction: every custom table gets explicit ACLs.
 
 ### Design Principles
 
 - **Least privilege** — start restrictive and grant access explicitly; do not rely on the absence of deny rules
-- **Row-level filtering** — use `before` query Business Rules (addEncodedQuery on the current query) to restrict which records a user can see, rather than relying solely on ACLs for row-level security; ACLs control table/field access, BRs control record-level visibility
+- **Row-level filtering** — use `before query` Business Rules to restrict which records a user can see; ACLs control table/field access, query BRs control record-level visibility. **Exempt `admin` in the query BR** (`if (gs.hasRole('admin')) return;`) — a query BR that hides rows from administrators turns every support session into a phantom data-loss investigation
 - **Field-level ACLs** — use sparingly and only for genuinely sensitive fields (e.g. SSN, salary); they add evaluation overhead on every form load and list render
 - **Avoid overly broad roles in ACLs** — granting `itil` access to a custom table means every ITSM agent can read/write it; create custom roles scoped to the application
 - **Script conditions in ACLs** — use only when role-based and condition-based rules are insufficient; script conditions are harder to audit and slower to evaluate
-- **Test as the target persona** — impersonate a user with the intended role and verify they can only see and do what the design specifies; test both the happy path (access works) and the negative path (restricted data is hidden)
+- **Test as the target persona** — impersonate a user with the intended role and verify both the happy path (access works) and the negative path (restricted data is hidden). Results as admin prove nothing — admin bypasses ACLs
 
 ### Common Patterns
 
@@ -539,11 +902,12 @@ When a reference field points to a restricted table, the ACL on the referenced t
 - Cross-scope ACLs (granting access to tables in another scope) require careful planning — prefer exposing data via a Script Include or Scripted REST API rather than opening ACLs across scopes
 - When creating ACLs in a scoped app, ensure the ACL record is captured in the correct update set / app scope
 
-### Debugging ACLs
+### Verifying and Debugging ACLs
 
-- Use the **Security Diagnostics** page (`sys_security.do`) to evaluate ACL decisions for a specific user, table, and operation
-- Enable the **ACL debugging** session property to see which ACLs are evaluated and their results in the system log
-- Check for **conflicting ACLs** — if multiple rules match, the most specific wins; if two rules at the same specificity conflict, the most restrictive wins
+- **Debug Security Rules** (System Security → Debugging → Debug Security Rules; equivalently System Diagnostics → Session Debug → Debug Security, or append `&sysparm_debug=security` to the URL) — shows which ACLs were evaluated for the session and which passed or failed
+- **Access Analyzer** (newer releases) — evaluates a chosen user's access to tables, records, fields, UI pages, client-callable Script Includes, and REST endpoints, with the evaluation trace. The fastest answer to "why can('t) this user see this?"
+- **Impersonation is part of every ACL test** — combine it with the debuggers above
+- **Check for same-level rule stacking** — rules at the same specificity are OR'd; a "tightening" ACL added beside a loose one changes nothing
 
 > ⚠️ Elevating to `security_admin` is required to create, modify, or delete ACL rules. Always test ACL changes on a sub-production instance first.
 
@@ -557,19 +921,38 @@ Logging discipline matters more than the specific API. Pick the right tier for t
 
 | Tier | When | Pattern |
 |---|---|---|
-| 1 — Project logger | An engagement-deployed logger (e.g. `GSLog`) is available on the target instance | `this.log = new GSLog('com.prefix.module', this.type); this.log.info(…)` |
-| 2 — Platform default | No project logger is deployed — most personal dev instances, fresh customer instances, ServiceNow internal | `gs.info(msg, source)` / `gs.warn(msg, source)` / `gs.error(msg, source)` for permanent logging; `gs.debug(msg, source)` for trace-level diagnostics that stay in code |
+| 1 — Project logger | An engagement-deployed logger (e.g. `GSLog`) is available on the target instance | `this.log = new global.GSLog('com.prefix.module', this.type); this.log.info(…)` |
+| 2 — Platform default | No project logger is deployed — most personal dev instances, fresh customer instances, ServiceNow internal | `gs.info(msg)` / `gs.warn(msg)` / `gs.error(msg)` for permanent logging; `gs.debug(msg)` for trace-level diagnostics that stay in code. The artifact identity travels **in the message** — see below |
 | 3 — Temporary debug | Active debugging that gets removed before release | `gs.log(msg, 'recognisable-source')` — search-and-destroy before go-live |
 
 Check the project's knowledge / setup notes for whether a project logger is deployed. If unclear, default to Tier 2 — the scoped `GlideSystem` logging methods are documented platform APIs with proper level support, not a sad fallback.
 
 **VA topic scripts:** `GSLog` is not available inside Virtual Agent topic script nodes. Use the Tier 2 platform methods (`gs.info()` / `gs.warn()` / `gs.error()`) directly.
 
-### Source string — required, always
+### Building a Tier 1 Logger (when none exists)
 
-Every permanent log call must pass an explicit source string that identifies the artifact producing the log, so filtering syslog by source jumps straight to the originating code. Convention: use the artifact's name as it exists in ServiceNow.
+Most instances will **not** have a project logger deployed — that is fine; Tier 2 is the default, not a downgrade. Build a Tier 1 logger only when the project genuinely benefits (long engagement, many artifacts, need for runtime-adjustable verbosity), and **confirm with the user before building it** (see [Agent Ground Rules](#agent-ground-rules)).
 
-| Artifact | Source string |
+If building one, the shape is:
+
+- **One Script Include per scope**, named `[PREFIX]Logger` — a thin wrapper over the platform logging APIs, never a replacement for them
+- **Constructor takes the source**: `new x_scope.SNLogger('SNIncidentService')` — the logger injects the source and `[Prefix]` message prefix on every call so call sites stay one line
+- **Level methods** `debug()` / `info()` / `warn()` / `error()` delegating to the corresponding `gs.*` methods
+- **Level threshold from a system property** (e.g. `x_scope.log.level`, default `info`): the logger checks the property and suppresses calls below the threshold — verbosity becomes a runtime setting instead of a code edit. Property reads are cache-backed, so the check is cheap
+- **Optional, rarely needed:** writing to a custom log table — only when syslog genuinely cannot serve (e.g. operator-facing run history). Default is syslog via `gs.*`
+- Keep it under ~60 lines. If the logger grows features (formatting engines, transports), it has become a project of its own — stop
+
+### Identify the producing artifact — required, always
+
+Every permanent log line must be traceable to the artifact that produced it. The mechanism differs by tier:
+
+- **Tier 1 (project logger / GSLog):** the source is set once at construction — `new x_scope.SNLogger('SNIncidentService')` — and attached to every call.
+- **Tier 2 (`gs.info` / `gs.warn` / `gs.error` / `gs.debug`):** these methods have **no source parameter.** Their additional arguments are `{0}`–`{4}` MessageFormat substitution values, not a source — `gs.info('msg', 'SNIncidentService')` silently discards the second argument unless the message contains `{0}`. The artifact identity therefore lives **in the message body** via the `[Prefix]` convention below. (In scoped apps the platform also attaches scope and script context to the entry automatically.)
+- **Tier 3 (`gs.log`):** the legacy API *does* take a source as its second parameter — `gs.log(msg, 'recognisable-source')` — which is exactly what makes temp-debug lines easy to search and destroy.
+
+**The artifact identifier** is the artifact's name as it exists in ServiceNow:
+
+| Artifact | Identifier |
 |---|---|
 | Script Include | The class name — e.g. `'SNIncidentService'` |
 | Business Rule | The BR's full name — e.g. `'SN - Before - Set Priority on Create'` |
@@ -579,11 +962,9 @@ Every permanent log call must pass an explicit source string that identifies the
 | UI Action | The UI Action name |
 | Background Script | A descriptive identifier including a date stamp |
 
-In scoped apps the platform auto-attaches scope and script name to log entries, but pass an explicit source anyway — it keeps log analysis consistent across global-scope code and makes per-artifact filtering trivial in syslog.
-
 ### Inline prefix in the message body
 
-In addition to the source string, prefix every log message body with the artifact name in square brackets — e.g. `[Update Interaction]`, `[SN - Set Priority on Create]`. This keeps messages self-describing when read inline (without the source column) and supports a single `messageLIKE[Prefix Name]` filter in syslog.
+Because Tier 2 has no source parameter, prefix every log message body with the artifact name in square brackets — e.g. `[Update Interaction]`, `[SN - Set Priority on Create]`. This keeps messages self-describing when read inline (without the source column) and supports a single `messageLIKE[Prefix Name]` filter in syslog.
 
 - Never use `*` or `***` in the prefix — `*` is the ServiceNow search wildcard character and breaks syslog filtering
 - Keep prefixes consistent across all log lines from the same script
@@ -605,11 +986,14 @@ Every log message includes: **what happened / when / where / how / who** + recor
 
 ```javascript
 // ✅ GOOD
-gs.info('[Update Interaction] Updating interaction: ' + interactionGR.getValue('number'), 'SNInteractionService');
-gs.error('[VA Topic Switch] Failed to switch topic: ' + e, 'VA - Topic Switch');
+gs.info('[SNInteractionService] Updating interaction {0}', grInteraction.getValue('number'));
+gs.error('[SN - VA Topic Switch] Failed to switch topic: {0}', e);
 
-// ❌ BAD — wildcard characters in prefix
-gs.info('*** Update Interaction *** Updating interaction: ' + interactionGR.getValue('number'));
+// ❌ BAD — gs.info() has no source argument; 'SNInteractionService' is a discarded {0} substitution value here
+gs.info('Updating interaction: ' + grInteraction.getValue('number'), 'SNInteractionService');
+
+// ❌ BAD — wildcard characters in prefix (* is the syslog search wildcard)
+gs.info('*** Update Interaction *** Updating interaction: ' + grInteraction.getValue('number'));
 
 // ❌ BAD — no context
 gs.info('Record updated');
@@ -624,7 +1008,38 @@ Wrap risky operations (REST calls, GlideRecord operations that may fail ACLs, pa
 - Remove all Tier 3 `gs.log()` temp-debug calls
 - Remove all `console.log()` calls (these end up in browser console anyway, never in syslog)
 - Confirm Tier 1/2 calls are at the right level — not everything at `info`
-- Confirm every permanent log call has an explicit source string and inline `[Prefix]`
+- Confirm every permanent log call carries the inline `[Prefix]` (and that Tier 1 loggers were constructed with the correct source)
+
+---
+
+## Error Handling
+
+Logging tells you what happened; error *handling* decides what happens next. The conventions:
+
+### Where to try/catch
+
+- Wrap operations that can fail **for reasons outside your code's control**: REST/SOAP calls, JSON parsing of external input, CRUD that ACLs might block, type coercion of untrusted values
+- Do **not** blanket-wrap entire methods — a try/catch around everything hides which operation actually failed and encourages catch-and-ignore
+- **An empty catch block is a defect.** Catch in order to *act*: log with context, then recover, return a failure contract, or rethrow. Never swallow silently.
+
+### Return contracts
+
+Pick a failure convention per project and apply it uniformly so callers never guess:
+
+- **Simple lookups** return the value or `null` — caller checks truthiness
+- **Operations** return a consistent result object: `{ success: boolean, message: string, data: object|null }`
+- Document the contract in the method's JSDoc `@return` — the next developer (or agent) reads the signature, not the body
+
+### User-facing vs. log-facing
+
+- Users get a friendly, translated message (`gs.addErrorMessage(gs.getMessage('key'))`); logs get the technical detail (exception message, record sys_id, stack where available)
+- **Never** expose stack traces, sys_ids, or raw exception text to end users; **never** log-only a failure the user needed to know about
+
+### Throwing and aborting
+
+- Low-level helpers may `throw` when the caller is expected to catch — but every **entry point** (BR, scheduled job, Scripted REST resource, AJAX method) catches everything; an uncaught exception there fails the transaction with a generic error nobody can act on
+- To stop a save deliberately in a before BR, use `gs.addErrorMessage()` + `current.setAbortAction(true)` — an *intentional, explained* abort, not an exception escape
+- Scripted REST resources map failures to correct HTTP status codes — see [Integrations — Scripted REST API](#integrations--scripted-rest-api)
 
 ---
 
@@ -691,6 +1106,15 @@ Before closing out an update set or promoting to production, in addition to the 
 | Client Script | Populate the *Messages* field on the script record + `getMessage('key')` in code; async fallback if Messages field unavailable |
 | Widget | `gs.getMessage()` in server script; `{{key}}` in HTML for static text |
 
+<details><summary><b>Why message keys instead of inline text?</b></summary>
+
+- **Translation without code changes** — `sys_ui_message` rows carry per-language values; hardcoded strings mean every wording or language change is a code deployment.
+- **Stable keys survive copy edits** — keying by `prefix.subcategory.description` (rather than using the English sentence as the key) means rewording the message doesn't orphan every translation of it.
+- **Logs and payloads are exempt on purpose** — log messages are for engineers and must stay greppable in one language; integration payloads are contracts with other systems, not UI copy.
+
+</details>
+
+
 ---
 
 ## Notifications
@@ -708,23 +1132,60 @@ Three-layer structure — never collapse these into one:
 - Mail scripts are called via `${mail_script:name}` — spaces in the name will cause the call to silently fail
 - Set *Send to event creator* = `FALSE` unless explicitly required
 
+<details><summary><b>Why these notification rules?</b></summary>
+
+- **Three layers = three change cadences** — branding (layout) changes rarely, body copy (template) changes sometimes, trigger/recipients (notification) change per use case. Collapsing them means every copy tweak risks the trigger logic and every rebrand touches dozens of records.
+- **Never rename a used template** — templates are referenced by name from notifications and `${template}` calls; renaming silently breaks every consumer with no error until an email goes out wrong (or not at all).
+- **No hardcoded instance URLs** — emails authored with full URLs point at *dev* forever after a clone; the instance suffix resolves correctly in every environment.
+- **Recipients via groups/record fields** — named individuals leave, change roles, go on leave; groups and record user fields keep the notification correct without maintenance.
+- **Send to event creator = FALSE** — the person whose action triggered the email almost never needs to be told what they just did; defaulting to true generates noise that trains users to ignore notifications.
+
+</details>
+
+
 ---
 
 ## Scheduled Jobs
 
 - Clear the `run_as` field unless a specific user context is genuinely required (defaults to the creating user, which is often wrong)
-- Use the **"Force to Update Set"** UI action to capture scheduled jobs in update sets (reliable on Madrid+)
+- Verify the job record is actually captured in your update set — `sysauto` records are not always tracked automatically. If missing, force-capture it (**Add to Application File** in a scoped app — via *Actions on selected rows*; a force-to-update-set script/UI action in global scope). The `sys_update_xml` list can only *move* captures that already exist between sets — it cannot create a missing one
 - Max ~5 lines of code in the job itself — delegate all logic to a Script Include
 - For user-facing scheduled tasks, prefer a **Flow Designer scheduled flow**; use Scheduled Jobs for core application/platform automation
+
+<details><summary><b>Why these job rules?</b></summary>
+
+- **Clear `run_as`** — a job silently defaults to running as whoever created it. When that account is deactivated (people leave), the job starts failing — or worse, keeps running with a departed user's permissions. Empty means system context: predictable and durable.
+- **≤5 lines, delegate to an SI** — the job record is *scheduling configuration*, not code. Logic in an SI is testable from a background script, reusable by a manual "run now" UI Action, and editable without touching (and re-capturing) the schedule record.
+- **Verify capture** — `sysauto_script` records are data-ish artifacts the update-set tracker doesn't always capture automatically; checking (and force-capturing if needed) guarantees the job actually arrives in the next environment.
+
+</details>
+
 
 ---
 
 ## Multi-row Variable Sets (MRVS)
 
-- Access MRVS data via `ritmGr.variables[multiRowInternalName]` — returns a multi-row object
+- Access MRVS data via `grRitm.variables[multiRowInternalName]` — returns a multi-row object
 - Iterate using `.getRowCount()` and `.getRow(i)`
 - Extract individual field values using `String(row[fieldName])`
+
+<details><summary><b>Why the String() coercion?</b></summary>
+
+- **Row values are objects, not strings** — `row[fieldName]` returns an element wrapper; pass it into JSON, comparisons, or string concatenation and you get object identity surprises (`[object Object]`, failed equality). `String()` at the point of extraction makes every downstream use behave.
+
+</details>
+
 - MRVS data is available on `sc_req_item` records after submission
+
+---
+
+## Attachments
+
+- Server-side attachment operations go through **`GlideSysAttachment`** — never raw-write `sys_attachment` records
+- **Do not copy attachments — move or reference.** Copying duplicates the stored file: storage doubles and the "same" document forks into two diverging copies. Move the attachment to the target record (`GlideSysAttachment` write to the new `table_name`/`table_sys_id`) when ownership transfers, or keep a reference to the record that owns it when it doesn't
+- Attachment visibility follows the **ACLs of the record it is attached to** — attaching a sensitive file to a widely-readable record exposes it
+- Respect the instance attachment size/type properties rather than overriding them per-table without cause
+- Never store file content as base64 in string fields — that is what attachments are for
 
 ---
 
@@ -760,7 +1221,7 @@ Do not use a Catalog Item when a Record Producer would be more direct, and vice 
 - Same rules as standard Client Scripts apply (no synchronous calls, max 1 AJAX call, use `g_form`)
 - Catalog Client Scripts are scoped to the catalog item or variable set — they do not affect other items
 - Set the **Applies on** checkboxes correctly: "Catalog Item" (the request form), "Target record" (the created record), or both
-- For Service Catalog, **always use GlideAJAX** for server-side data retrieval — there is no table context to trigger Business Rules from
+- For Service Catalog, **always use GlideAJAX** for server-side data retrieval — there is no record behind the item form before submission, so Display BRs / `g_scratchpad` cannot supply data
 
 ### Catalog UI Policies
 
@@ -791,9 +1252,17 @@ Do not use a Catalog Item when a Record Producer would be more direct, and vice 
 
 - **Never back out** an update set — deploy a hotfix update set instead
 - Do not deploy **Default** update sets to another instance
-- Do not use update sets for **locally developed scoped applications** — use the application repository; update sets in scoped apps impact upgradability
-- Do not use update sets inside **custom scoped applications**
+- Do not use update sets for **custom scoped applications** — scoped apps move through the application repository and/or source control (a Studio-linked repo, or ServiceNow SDK / Fluent builds deployed via the `now-sdk` CLI). Update sets inside a scoped app create a second source of truth and impact upgradability; update sets remain the vehicle for global-scope configuration only
 - For complex deployments, use a **Runbook template**
+
+<details><summary><b>Why never back out, and why batch?</b></summary>
+
+- **Backing out only reverts what the set captured** — related records modified outside the set, data created by the deployed code, and downstream changes all survive the back-out, leaving the instance in a state nobody designed. Rolling *forward* with a hotfix set keeps every change deliberate and auditable.
+- **Batching preserves identity; merging destroys it** — a merged set is one irreversible blob: you can no longer pull one story out, see which set a change came from, or re-run collision detection per set. Batches keep each set intact while still committing in one operation, in order.
+- **No update sets inside scoped apps** — scoped apps version through the application repository (install/upgrade semantics, version numbers, dependency checks). Mixing update sets into that lifecycle creates two competing sources of truth and breaks clean upgrades.
+
+</details>
+
 
 **Moving multiple update sets:**
 Use **batching**, not merging. Batching:
@@ -807,7 +1276,7 @@ Use **batching**, not merging. Batching:
 3. When in doubt — undo the change in the wrong set and redo it in the correct one
 
 **Pushing data records into an update set:**
-Use **"Create Application File"** from the List Choices menu. No scripting required. Useful for data records that application logic depends on (e.g. custom Group Type records).
+Select the rows, open the **Actions on selected rows** menu, and choose **Add to Application File** (this opens the *Create Application File from Record* dialog). No scripting required. Useful for data records that application logic depends on (e.g. custom Group Type records).
 
 ### Promotion Discipline
 
@@ -855,6 +1324,15 @@ For one-off data promotion alongside update sets:
 
 If the same reference data will be imported more than once, prefer an Import Set + Transform Map over repeated XML imports.
 
+### Fix Scripts
+
+A Fix Script is the **deployable** form of one-time scripted work — data migrations, backfills, post-deploy corrections. Background scripts are for ad-hoc investigation only and are never a deployment artifact: if it must run in another environment, it is a Fix Script.
+
+- Wrap in the standard IIFE; delegate anything non-trivial to a Script Include
+- **Idempotent by design** — guard so a re-run is safe (query for the un-migrated state rather than assuming a clean slate); deployments get retried
+- Log a run summary (records examined / changed / skipped) with the standard `[Prefix]`
+- Note in the update set description (or the promotion list) whether the fix script runs before or after commit
+
 ---
 
 ## Flow Designer
@@ -877,6 +1355,13 @@ If the same reference data will be imported more than once, prefer an Import Set
 
 **Performance:**
 - Never use `gs.sleep()` — use **Wait for conditions** instead
+
+<details><summary><b>Why?</b></summary>
+
+- **`gs.sleep()` holds a worker thread hostage** — the platform has a finite pool of background workers; a sleeping flow occupies one doing nothing, and a few concurrent sleepers can starve every other scheduled job on the node. *Wait for condition* parks the flow and frees the thread until the condition wakes it.
+
+</details>
+
 - Always set conditions on record triggers — never trigger on all records
 - Execute flows in the **background** to release UI threads
 - Turn flow **reporting OFF in production** (`com.snc.process_flow.reporting.level` = Off) — enable only on specific flows when needed for debugging
@@ -899,12 +1384,21 @@ If the same reference data will be imported more than once, prefer an Import Set
 
 - Enable the **CMDB Health Dashboard** jobs — they are disabled by default. Configure a job for each health KPI you want to track (duplicates, required fields, audits)
 - Place **attributes as high as possible** in the CI class hierarchy — don't define the same attribute separately on multiple child classes when a parent class could hold it once
-- **Custom CMDB tables** must be named starting with `u_cmdb_ci` for easy identification
+- **Custom CMDB tables** are named starting with `u_cmdb_ci` for easy identification — this is the global-scope convention; CMDB class extension is one of the legitimate global-scope exception cases under [Application Scope](#application-scope), and classes created inside a scoped app take the scope's `x_` prefix instead
 - Use a **tree picker** for Location reference fields — prevents duplicate or misspelled location values
 - **Never alter baseline relationship types** (`cmdb_rel_type`) — changes break Discovery and can cause errors
 - Use **OOTB CI classes** wherever possible; do not extend directly off `cmdb_ci`
+
+<details><summary><b>Why these CMDB rules?</b></summary>
+
+- **Attributes high in the hierarchy** — the same attribute defined separately on three child classes is three columns the platform can't treat as one: reporting, identification rules, and IRE reconciliation all see them as unrelated fields. Defined once on the right parent, every descendant inherits a single consistent column.
+- **Don't extend `cmdb_ci` directly** — identification rules, reconciliation, dependent relationships, and Discovery patterns are wired to the *specific* OOTB classes. A class hung straight off `cmdb_ci` inherits none of that and becomes invisible to the machinery that keeps a CMDB healthy. Extend the closest matching OOTB class instead.
+- **Baseline `cmdb_rel_type` is load-bearing** — Discovery, service mapping, and OOTB dashboards create and traverse relationships by those exact types; altering one corrupts every existing edge of that type.
+
+</details>
+
 - Do not **recreate OOTB attributes** as custom fields — leverage what exists
-- Enable **suggested relationships only** in the Relationship Editor (`glide.cmdb.suggested_relationship.enabled = true`) — first ensure all valid relationship types between classes are listed as suggested, then enable the property to prevent users creating invalid relationships
+- Restrict the Relationship Editor to **suggested relationships** — first ensure every valid relationship type between classes is listed in the Suggested Relationship [`cmdb_rel_type_suggest`] table (maintained via CI Class Manager or Configuration → Suggested Relationships), then enable the restriction so users cannot create invalid relationships *(the enabling property name varies by release — verify on the target instance before scripting it)*
 - Assign a **Business Owner** to every Business Application CI
 
 ---
@@ -1021,9 +1515,9 @@ Each widget has its own folder containing 4 files:
 - Inject only the dependencies you actually use (`$scope`, `$timeout`, `$rootScope`, services, etc.)
 
 **Server script rules:**
-- Data loading should happen **once** during initial widget load — not on subsequent client interactions
+- The server script runs once for the **initial render** (load the widget's starting data there) and again on every `c.server.get()` / `c.server.update()` round trip — branch on `input`: `if (input) { /* handle the interaction */ } else { /* initial load */ }`, and keep the branches disjoint
 - Set data on the `data` object to transfer it to the client script
-- All business logic must be delegated to Script Includes — the server script is for data retrieval and transfer only
+- All business logic must be delegated to Script Includes — the server script is for data retrieval, dispatch, and transfer only
 
 ---
 
@@ -1058,22 +1552,47 @@ Directives, services, and factories are all considered **Angular providers** in 
 
 **Public and private methods:**
 - Public methods expose usable functionality to other components — name them clearly to convey intent and capability
-- Private methods start with `_` (e.g. `_recalculateAvailableData`) — cannot be called from outside the provider
+- Private methods start with `_` (e.g. `_recalculateAvailableData`) — **must not** be called from outside the provider; the underscore is the documented signal (JavaScript does not enforce it — same rule as [Function Design](#code-readability))
 
 ---
 
 ## Service Portal — Server Communication
 
-**Two patterns for loading data:**
+**Three patterns, in order of preference:**
 
-1. **Widget initial load** (`*.server.js`) — data is loaded server-side once during the first render and transferred to the client via the `data` object
-2. **REST calls** — the only way to get or process data from/to the server after initial load
+1. **Widget initial load** (`*.server.js`) — data for the first render is loaded server-side once and transferred via the `data` object. The server script's no-`input` branch *is* the initial load.
+2. **Widget round trip** — after load, client interactions go through the widget's own channel: `c.server.get({action: '...', ...})` for a targeted call, or `c.server.update()` to re-run the server script with the current `c.data` as `input`. This is the standard mechanism for post-load server work inside a widget. The server script branches on `input` and delegates to Script Includes; treat everything in `input` as untrusted client input (validate it; `GlideRecordSecure` per the standard rule).
+3. **REST** (Table API / Scripted REST) — for Angular services/providers shared across widgets, for data needs that outlive a single widget, or for consumers outside the portal. Not the default *inside* a widget: the round trip above is simpler and carries the widget's server context.
 
-**REST call rules:**
-- **Do not write custom REST handlers** — reuse existing REST service implementations (e.g. from an app template such as `restUtils.js` or `restTableUtils.js`)
-- `restUtils.js` — generic REST helpers for standard operations
-- `restTableUtils.js` — helpers targeting ServiceNow's Table API endpoints
-- If the existing REST utilities don't cover your use case, update them rather than creating a parallel implementation
+**Round-trip rules:**
+- Send an explicit `action` discriminator in `c.server.get()` payloads so the `input` branch is a readable dispatch, not a guess from payload shape
+- Never re-run the initial-load work inside the `input` branch
+- **One round trip per user interaction** (same spirit as the 1-AJAX-call rule) — consolidate what the interaction needs into a single `get`/`update`
+- If the project has an established REST utility service for pattern 3, reuse or extend it — do not write a parallel implementation per widget
+
+---
+
+## Service Portal — Client-Side State
+
+Where client-side state lives is a decision ladder — reach for the smallest scope that survives long enough:
+
+| State must survive | Mechanism |
+|---|---|
+| One widget, one page view | Controller state (`c.data`, scope variables) |
+| Multiple widgets, same page | Angular service as a data repository (see [AngularJS Providers](#service-portal--angularjs-providers)), or `$rootScope` events for notifications |
+| Page navigations within the tab | `sessionStorage` — every portal navigation re-bootstraps Angular, so in-memory state dies; this is the legitimate web-storage case |
+| Sessions / browser restarts | **User Preferences** (server-side, follows the user across devices and is server-visible) — `localStorage` only for low-value, device-local convenience |
+| The server's session (server-set, client-read) | `gs.getSession().putClientData()` — exposed to the widget via its server script; session-scoped, so clear flags when done |
+
+**Web storage rules (`sessionStorage` / `localStorage`):**
+
+- **Never store sensitive data** — web storage is plaintext, readable by any script on the origin, and (for `localStorage`) outlives the session. No PII, no tokens, nothing authorization-shaped. Access decisions are enforced server-side by ACLs, always; client state is UX convenience, never a security boundary
+- **Namespace every key** — the whole instance shares one origin, so every portal and widget shares the same storage. Prefix keys: `x_scope.widget-id.key`
+- **Key user-specific state by user** — storage survives impersonation switches and shared machines; include the user sys_id (passed from the server script) in the key, or stale state leaks across identities
+- **Strings only, so serialise deliberately** — `JSON.stringify` on write; `JSON.parse` inside `try/catch` on read (corrupted or legacy values), and treat a shape mismatch as absence
+- **Treat it as a cache, not a source of truth** — users clear storage, private-browsing modes restrict it, and `setItem` can throw (quota, Safari private mode): wrap writes in `try/catch` and always be able to rebuild from the server
+- **`localStorage` never expires** — store a written-at timestamp and treat stale entries as absent; remove keys a widget no longer uses
+- Do **not** use web storage for same-page widget-to-widget messaging — that is what services and `$rootScope` events are for
 
 ---
 
@@ -1121,7 +1640,7 @@ A structured approach to CSS class naming combining **prefixed classes** and **B
 - **Never add styling to IDs** — this can break stylesheets in edge cases
 - Avoid IDs in HTML altogether — use prefixed classes; for jQuery hooks use `js-` prefixed classes
 - Avoid CSS `float` and `table` for layout — use **Flexbox** instead
-- Do not use CSS Grid — ServiceNow's supported browsers historically relied on an older spec; Flexbox is the safer choice
+- CSS Grid is fully supported by all current platform-supported browsers (the old-IE-era restriction no longer applies); Flexbox remains the house default for consistency with existing widget code, and Grid is acceptable for genuinely two-dimensional layouts — pick one approach per widget and stay with it
 - Separate structure from skin — especially for layouts; components may combine both when practical
 - Recognise and codify repeating patterns (DRY) — use variables for recurring values
 - Do not mirror DOM structure in SCSS nesting
@@ -1216,7 +1735,19 @@ By default, Moment.js is loaded into Service Portal but ServiceNow's translation
 
 ## Automated Test Framework (ATF)
 
-ServiceNow's Automated Testing Framework enables automated regression testing of back-end and form-based functionality. ATF does **not** support testing Service Portal widgets.
+### Coverage Expectations
+
+A minimum bar for what must have a test before go-live — without a stated bar, the answer is always "skip":
+
+- **Client-callable Script Includes** (AJAX) — they are an attack surface; test both the happy path and an unauthorised/invalid-input path
+- **Script Includes with business logic** — at least the primary path and one failure path per public method
+- **Scripted REST resources** — one test per verb covering a success and a failure status code
+- **Critical flows** — happy path plus the most likely failure branch
+- **Declarative-only changes** (UI Policies, layouts, simple field changes) may ship without ATF coverage
+
+Keep the suite runnable after every clone (see base-test guidance below) — a suite that fails post-clone stops being run at all.
+
+ServiceNow's Automated Test Framework enables automated regression testing of back-end, form-based, and — since Orlando, via **Custom UI test steps** — Service Portal functionality (buttons, links, page text, UI controls, catalog items in the portal).
 
 ### What to Test
 
@@ -1228,8 +1759,8 @@ ServiceNow's Automated Testing Framework enables automated regression testing of
 - **Forms** — only if a form is vital to the application's functionality. ATF can test forms, but they offer less value in most cases.
 - **Business Rules / Scheduled Jobs** — these should contain no logic and instead delegate to a Script Include. Since the Script Include is already tested, a separate test for the trigger component is redundant and not recommended.
 
-**Cannot test:**
-- Service Portal widgets (ATF does not support them)
+**Cannot test (directly):**
+- **Custom widget internals** — portal pages and their components are testable via Custom UI steps, but a widget's controller logic is not directly assertable; cover it through the Script Includes the widget delegates to
 - Flow Designer flows via ATF UI (but flows can be executed and verified via `sn_fd.FlowAPI` in a Run Server Side Script step)
 
 ### Environment Rules
@@ -1267,12 +1798,12 @@ var testAssertion = {
 assertEqual(testAssertion); // throws Error on failure, logs to step output
 ```
 
-**Jasmine framework** (recommended for richer assertions — uncomment `jasmine.getEnv().execute();` outside the function body to enable):
+**Jasmine framework** (recommended for richer assertions — the trailing `jasmine.getEnv().execute();` outside the function body is what runs the spec):
 ```javascript
 (function(outputs, steps, stepResult, assertEqual) {
     describe("getListsForUser Test", function() {
         var userID = steps("impersonate_step_sys_id").user;
-        var service = new ListService();
+        var service = new x_scope.ListService();
         var lists = service.getListsForUser(userID);
 
         it("should not return null or undefined", function() {
@@ -1288,7 +1819,6 @@ assertEqual(testAssertion); // throws Error on failure, logs to step output
 jasmine.getEnv().execute();
 ```
 
-> ⚠️ Jasmine does not work on instances running the Jakarta release or earlier.
 
 ### Test Scope — Don't Over-Test, Don't Under-Test
 
@@ -1344,7 +1874,7 @@ APP_NAME Suite                                          ← top-level, run night
 - Schedule the top-level App Suite to run daily on the development instance.
 - A single schedule record can be attached to multiple Test Suites.
 - Optionally configure a browser for UI test steps and add team members to the **watchlist** so they are alerted on failures.
-- Tests with UI steps require an open **Scheduled Client Test Runner** page matching the schedule's browser conditions. The runner must be on an unlocked machine with the browser already open. A dedicated ATF test user account should stay logged in for this purpose.
+- Tests with UI steps require an open **Scheduled Client Test Runner** page matching the schedule's browser conditions — on an unlocked machine, with a dedicated ATF test user staying logged in — or use the platform's **headless browser** runner option, which removes the unlocked-machine requirement (see [Running ATF Programmatically](#automated-test-framework-atf)).
 - Server-only tests (no UI steps) do not require a Client Test Runner.
 
 ### Parameterized Tests
@@ -1367,21 +1897,30 @@ Available from the Orlando release onwards. Parameterized tests let you run the 
 - Use **Test Logs** and **Test Transactions** (related lists on the Test Result record) to diagnose failures and performance issues.
 - If ATF modules are not visible on a fresh instance, navigate to the Application Menus list, find the Automated Test Framework record, and enable the necessary modules. Assign the roles `atf_test_admin`, `atf_test_designer`, and `admin` to your user profile.
 
-### ATF via MCP
+### Running ATF Programmatically
 
-ATF test creation is a UI-only activity, but tests can be **executed** programmatically:
+ATF test *creation* is a UI activity, but execution can be automated. The supported programmatic path is the **CI/CD REST API**:
 
-```javascript
-var testRunner = new sn_atf.TestRunner();
-var result = testRunner.runTest('test_sys_id_here');
-gs.info('Test result: ' + result.getStatus());
+```
+POST /api/sn_cicd/testsuite/run?test_suite_sys_id=<suite_sys_id>
 ```
 
-This is useful for smoke tests after deployments or for integrating ATF execution into automated pipelines via background scripts.
+The call returns a progress resource to poll for the result. **Suites — not individual tests — are the unit of remote execution**, which is one more reason to maintain the suite hierarchy above. Suites containing UI steps still need a runner: a Scheduled Client Test Runner session, or the platform's **headless browser** option ("Headless Browser for Automated Test Framework" in the official docs). This is the pattern for post-deployment smoke tests and pipeline gates.
 
 ---
 
 ## Import Sets & Transform Maps
+
+**All inbound data goes through an Import Set + Transform Map — never write external data directly to target tables.** This applies to *custom* integrations as much as file loads: a Scripted REST endpoint, MID-relayed feed, or Flow Designer integration should insert into an import set (staging) table and let the transform own the target-table writes. A working pattern: a Flow receives/fetches the payload and creates import set rows; the Transform Map does the rest.
+
+<details><summary><b>Why staging-first?</b></summary>
+
+- **Validation and cleansing have a home** — onBefore scripts inspect, fix, or reject each row before it touches real data; direct writes have no such gate.
+- **Coalesce gives you dedup/upsert for free** — direct writes force you to hand-roll exists-checks for every integration.
+- **Failures are visible and replayable** — a bad row sits in the staging table with an error state, inspectable and reprocessable; a failed direct write is just a log line and lost data.
+- **Decoupling** — the payload shape can change without touching the target data model; only the map changes.
+
+</details>
 
 Import Sets are ServiceNow's general-purpose mechanism for loading external data into production tables. They are used by LDAP imports, file-based imports (CSV, Excel, XML), JDBC connections, and Integration Hub Data Streams. This section covers general best practices; see [LDAP User Import](#integrations--ldap-user-import) for LDAP-specific guidance.
 
@@ -1393,6 +1932,7 @@ Data is always loaded into a staging table first, never directly into the target
 
 ### Staging Table Design
 
+- A staging table **is** an import set table: it always extends `sys_import_set_row`. Load Data and IntegrationHub create them that way; a manually created staging table must extend it too. A standalone table used as "staging" gets none of the import set machinery — row state tracking, transform history, or scheduled cleanup
 - Staging table fields should be **plain types** (string, integer) — never reference fields; reference resolution happens in the transform map
 - **Field lengths:** verify that auto-created field lengths are sufficient for the source data; fields that are too short silently truncate data. Common offenders: distinguished names, email lists, JSON payloads, and description fields
 - **One staging table per data source** — do not reuse a staging table for unrelated imports; it creates column clutter and makes troubleshooting harder
@@ -1433,9 +1973,10 @@ Never map a Distinguished Name, external ID, or non-sys_id string directly to a 
 
 ### Cleanup
 
-- Import set tables and their row data grow continuously — ServiceNow auto-cleans OOTB import tables, but **custom staging tables are not auto-cleaned**
-- Implement a **scheduled cleanup job** that deletes import set rows older than a retention period (30–90 days is typical)
-- Monitor staging table sizes — tables with hundreds of thousands of rows degrade list performance and can become inaccessible in the UI
+- Because every staging table extends `sys_import_set_row`, the OOTB **Import Set Deleter** scheduled job (System Import Sets → Scheduled Cleanup) cleans them all — custom ones included — deleting import sets and their row data older than the retention period (**7 days** by default)
+- **Verify the deleter is active and the retention fits the project.** If non-repudiation needs a longer trail, archive what must be kept elsewhere — do not solve it by disabling the deleter
+- Only a staging table that does *not* extend `sys_import_set_row` (an anti-pattern — see Staging Table Design) needs its own cleanup job
+- Monitor staging table sizes regardless — very large daily imports can outpace the cleanup window, and tables with hundreds of thousands of rows degrade list performance
 
 ### Scheduled Imports
 
@@ -1446,6 +1987,8 @@ Never map a Distinguished Name, external ID, or non-sys_id string directly to a 
 ---
 
 ## Integrations — General
+
+**Ground rule for anything inbound:** external data lands in an **Import Set and is written to target tables by a Transform Map** — integrations never write directly to target tables. See [Import Sets & Transform Maps](#import-sets--transform-maps).
 
 Before building any interface, gather and lock down **requirements and field mappings** before choosing a technical approach. Mappings are typically the most time-consuming part and are rarely dependent on the technology used.
 
@@ -1493,7 +2036,7 @@ Every interface must provide enough evidence to prove — or disprove — that a
 - Run processing **asynchronously** wherever possible — outbound messages should almost always be async; scoped apps do not support synchronous outbound REST
 - For inbound messages, decide based on load and requirements — transactional records typically need a synchronous response, but bulk data imports should be queued
 - Request or send **only the fields that will be used** — e.g. when querying the Table API, select only the needed fields instead of returning all columns
-- Clean up log and queue tables on a schedule — tables with hundreds of thousands of records degrade performance and eventually become inaccessible in the UI; import sets and OOTB logging tables are auto-cleaned, but custom tables are not
+- Clean up log and queue tables on a schedule — tables with hundreds of thousands of records degrade performance and eventually become inaccessible in the UI. Import set tables (they extend `sys_import_set_row`) and OOTB logging tables are auto-cleaned; **custom log/queue tables are not**
 
 ### Preventing Loops in Bi-Directional Interfaces
 
@@ -1540,7 +2083,7 @@ Follow standard HTTP method semantics:
 **Error responses:**
 - Always return a helpful error message alongside the status code — the consumer should understand the problem without needing to consult your documentation
 - Example: for a 404, return `"The specified record does not exist. Ensure a record with the ID of <id> exists in the application."` — not just `"Not found"`
-- Use the pre-configured error objects available in the Scripted REST API framework; use the customisable `ServiceRequest` error object when the built-in options do not fit
+- Use the pre-configured error objects available in the Scripted REST API framework; use the customisable `ServiceError` error object (`setStatus()` / `setMessage()` / `setDetail()`) when the built-in options do not fit
 
 ### Testing
 
@@ -1766,4 +2309,4 @@ When instances use IP Address Access Control (System Security → IP Address Acc
 - **Whitelist other ServiceNow instances** — add target instance IPs as exceptions on the source instance to prevent update set transfers from failing
 - **Outbound calls bypass IP restrictions** — if managing inbound IP ranges becomes impractical, consider restructuring the integration so ServiceNow initiates the call (outbound via MID Server or direct), avoiding the IP whitelist problem entirely
 - **Document all whitelisted ranges** and assign an owner responsible for maintaining them; review periodically
-- Reference: ServiceNow KB0598826 for the full IP address information landing page
+- Reference: the "ServiceNow IP address information" landing page on Now Support (search the KB for the current article)
