@@ -1,4 +1,4 @@
-# 🏆GlideGrail()
+# 🏆GlideGrail.md
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00.svg?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/bikemeardsley)
 [![ServiceNow docs.md](https://img.shields.io/badge/ServiceNow-docs.md-62D84E.svg?logo=servicenow&logoColor=white)](https://github.com/ServiceNow/ServiceNowDocs)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg)](LICENSE)
@@ -6,27 +6,26 @@
 #### *ServiceNow Coding Standards for Humans and AI Agents*
 
 Most ServiceNow best practice material is scattered across community posts, docs, tribal
-knowledge, or just not widely known, and written to be read by a human. GlideGrail() consolidates years of experience and common rules
+knowledge, or just not widely known, and written to be read by a human. GlideGrail.md consolidates years of experience and common rules
 into a single reference written to be consumed by a model: concrete, directive, and
 specific enough to change what your AI assistant (Claude, ChatGPT, Codex, Gemini, Copilot,
-Cursor) actually produces. "Use `GlideAggregate` to count, never `getRowCount()`." "One
-Script Include per table, named `[PREFIX][Table]Service`."
+Cursor) actually produces.
 
 Rules, not paragraphs, and equally useful as a human reference or a review checklist.
 
-> **Works on its own; pairs well with the official ServiceNow sources.** GlideGrail() is the
+> **Works on its own; pairs well with the official ServiceNow sources.** GlideGrail.md is the
 > judgment layer (how you want code written) and needs nothing else to be useful. When you
 > want to go further, two official, free companions complement it:
 > - [ServiceNow product docs in markdown](https://github.com/ServiceNow/ServiceNowDocs) (LLM-optimized) for authoritative, current platform behavior, and
 > - [ServiceNow now-sdk agent skills](https://github.com/ServiceNow/sdk) for live Fluent/SDK mechanics when you're building with the ServiceNow SDK.
 
-## 🚀 Quick start: add GlideGrail() to your AI tool
+## 🚀 Quick start: add GlideGrail.md to your AI tool
 
-Grab [`SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md`](./SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md)
+Grab [`GlideGrail.md`](./GlideGrail.md)
 (clone the repo, or download the raw file) and wire it into whichever assistant you use.
 
 ### <img src="https://cdn.simpleicons.org/claude" width="20" align="center" alt=""/> Claude & Claude Code
-**Claude (claude.ai / desktop / mobile):** attach [`SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md`](./SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md)
+**Claude (claude.ai / desktop / mobile):** attach [`GlideGrail.md`](./GlideGrail.md)
 to a Project (so it grounds every chat in that Project), or upload it at the start of a
 conversation and say *"Follow these ServiceNow standards in all code you write."*
 
@@ -34,25 +33,25 @@ conversation and say *"Follow these ServiceNow standards in all code you write."
 ```bash
 claude --add-dir /path/to/glidegrail
 ```
-Or add a line to your project's `CLAUDE.md`: *"Follow SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md
+Or add a line to your project's `CLAUDE.md`: *"Follow GlideGrail.md
 for all ServiceNow code."* and it loads automatically every session.
 
 ### ChatGPT / Codex
-Paste the [file's contents](./SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md) into a **Project's**
+Paste the [file's contents](./GlideGrail.md) into a **Project's**
 custom instructions (or a Custom GPT's knowledge), or attach the file at the start of a
 coding session and instruct: *"Follow these ServiceNow standards in all code you write."*
 
 ### <img src="https://cdn.simpleicons.org/githubcopilot" width="20" align="center" alt=""/> GitHub Copilot
 Add a `.github/copilot-instructions.md` to your repo that says to follow
-[the standards file](./SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md), and keep the file in the
+[the standards file](./GlideGrail.md), and keep the file in the
 repo so Copilot's workspace context can read it.
 
 ### <img src="https://cdn.simpleicons.org/googlegemini" width="20" align="center" alt=""/> Gemini
-Attach [the file](./SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md) (or paste it) into a **Gem's**
+Attach [the file](./GlideGrail.md) (or paste it) into a **Gem's**
 instructions, or include it at the top of your prompt/context for the session.
 
 ### <img src="https://cdn.simpleicons.org/cursor" width="20" align="center" alt=""/> Cursor
-Add it as a project rule: drop [the file](./SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md) in
+Add it as a project rule: drop [the file](./GlideGrail.md) in
 `.cursor/rules/` (or reference it from `.cursorrules`) so it's loaded into every request
 automatically.
 
@@ -62,18 +61,34 @@ tell the model to follow it before generating ServiceNow code.** It's just a tex
 
 ## What's inside
 
-[`SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md`](./SERVICENOW_GLIDEGRAIL_CODING_STANDARDS.md)
+[`GlideGrail.md`](./GlideGrail.md)
 covers, as enforceable conventions:
 
+- **Ground rules & scope**: when an agent should stop and confirm vs. just build,
+  scoped-app-first discipline, code readability, and a consolidated "Do Not Use" table of
+  banned patterns
 - **Naming**: tables, fields, Script Includes, Business Rules, variables, update sets,
   widgets (with a configurable `PREFIX`)
-- **Server-side scripting**: GlideRecord/GlideAggregate patterns, Script Include structure,
-  GlideAjax, constants, official-API preferences
-- **Client-side**: UI Policies vs. Client Scripts, GlideForm, GlideAjax usage
-- **Flow Designer**: flow/subflow structure, error handling, what belongs in a flow vs. a script
-- **Data model & CMDB**: table design, references, CI conventions
-- **Notifications, scheduled jobs, MRVS, system properties, logging** (a 3-tier logging
-  convention), and **i18n/messages**
+- **Server-side scripting**: GlideRecord/GlideAggregate patterns, GlideElement handling,
+  Script Include structure, GlideAjax, constants, official-API preference, and performance
+  at scale
+- **Client-side**: UI Policies vs. Client Scripts vs. Data Policies, GlideForm, GlideAjax,
+  and UI Actions across both classic forms and Workspaces
+- **Automation**: Business Rules (timing, order, recursion guards), Events, Scheduled Jobs,
+  and Flow Designer (flow/subflow structure, what belongs in a flow vs. a script)
+- **Security**: ACLs (design, hardening, debugging) and integration user/data security
+- **Logging, errors & operations**: a 3-tier logging convention, error-handling return
+  contracts, and operational-hygiene review routines (logs, queues, pre-go-live checks)
+- **Data & migration**: data model and CMDB conventions, Import Sets & Transform Maps
+  (staging-first), and Update Sets (promotion discipline, fix scripts, XML data import)
+- **Catalog, platform UX & i18n**: Service Catalog (items vs. record producers), MRVS,
+  attachments, system properties, notifications, messages/i18n, and UI Builder (Next Experience)
+- **Service Portal**: widgets, AngularJS providers, server communication, client-side state,
+  SCSS, BEM styling conventions, accessibility (WCAG), and Moment.js i18n
+- **Integrations**: interface design and non-repudiation, Scripted REST APIs, Integration
+  Hub & custom spokes, OAuth 2.0, and LDAP user import
+- **Testing**: the Automated Test Framework (ATF) — coverage expectations, suite hierarchy,
+  reusable base tests, and running suites via the CI/CD API
 
 ## Make it yours
 
@@ -94,7 +109,7 @@ Free to use, share, and adapt, including commercially, with attribution.
 
 ## Support
 
-If GlideGrail() saves you time and/or you find it useful, you can
+If GlideGrail.md saves you time and/or you find it useful, you can
 [buy me a coffee](https://buymeacoffee.com/bikemeardsley) ☕. Entirely optional, always
 appreciated! Stars and PRs help just as much.
 
