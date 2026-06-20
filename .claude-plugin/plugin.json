@@ -1,0 +1,11 @@
+{
+  "name": "glidegrail",
+  "version": "1.0.0",
+  "description": "ServiceNow coding standards for humans and AI agents — naming, server/client patterns, Flow Designer, ACLs, integrations, Service Portal, ATF, and more.",
+  "author": {
+    "name": "Michael Beardsley",
+    "url": "https://github.com/bikemeardsley"
+  },
+  "homepage": "https://github.com/bikemeardsley/GlideGrail",
+  "license": "CC-BY-4.0"
+}

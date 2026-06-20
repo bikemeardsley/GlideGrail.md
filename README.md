@@ -19,49 +19,31 @@ Rules, not paragraphs, and equally useful as a human reference or a review check
 > - [ServiceNow product docs in markdown](https://github.com/ServiceNow/ServiceNowDocs) (LLM-optimized) for authoritative, current platform behavior, and
 > - [ServiceNow now-sdk agent skills](https://github.com/ServiceNow/sdk) for live Fluent/SDK mechanics when you're building with the ServiceNow SDK.
 
-## 🚀 Quick start: add GlideGrail.md to your AI tool
+## 🚀 Quick start
 
-Grab [`GlideGrail.md`](./GlideGrail.md)
-(clone the repo, or download the raw file) and wire it into whichever assistant you use.
+GlideGrail ships as a **skill** — drop it into your AI tool and it loads automatically whenever
+you're writing or reviewing ServiceNow code.
 
-### <img src="https://cdn.simpleicons.org/claude" width="20" align="center" alt=""/> Claude & Claude Code
-**Claude (claude.ai / desktop / mobile):** attach [`GlideGrail.md`](./GlideGrail.md)
-to a Project (so it grounds every chat in that Project), or upload it at the start of a
-conversation and say *"Follow these ServiceNow standards in all code you write."*
-
-**Claude Code:** place the file in (or near) your project and launch with it in context:
+**Claude Code / Claude desktop app** — install as a plugin:
 ```bash
-claude --add-dir /path/to/glidegrail
+/plugin marketplace add bikemeardsley/GlideGrail
+/plugin install glidegrail@glidegrail
 ```
-Or add a line to your project's `CLAUDE.md`: *"Follow GlideGrail.md
-for all ServiceNow code."* and it loads automatically every session.
 
-### ChatGPT / Codex
-Paste the [file's contents](./GlideGrail.md) into a **Project's**
-custom instructions (or a Custom GPT's knowledge), or attach the file at the start of a
-coding session and instruct: *"Follow these ServiceNow standards in all code you write."*
+**Gemini CLI** — install as an extension:
+```bash
+gemini extensions install https://github.com/bikemeardsley/GlideGrail
+```
 
-### <img src="https://cdn.simpleicons.org/githubcopilot" width="20" align="center" alt=""/> GitHub Copilot
-Add a `.github/copilot-instructions.md` to your repo that says to follow
-[the standards file](./GlideGrail.md), and keep the file in the
-repo so Copilot's workspace context can read it.
-
-### <img src="https://cdn.simpleicons.org/googlegemini" width="20" align="center" alt=""/> Gemini
-Attach [the file](./GlideGrail.md) (or paste it) into a **Gem's**
-instructions, or include it at the top of your prompt/context for the session.
-
-### <img src="https://cdn.simpleicons.org/cursor" width="20" align="center" alt=""/> Cursor
-Add it as a project rule: drop [the file](./GlideGrail.md) in
-`.cursor/rules/` (or reference it from `.cursorrules`) so it's loaded into every request
-automatically.
-
-### Any other assistant
-The pattern is identical everywhere: **load the markdown as context/system instruction, and
-tell the model to follow it before generating ServiceNow code.** It's just a text file.
+**Every other tool** — ChatGPT, Codex, GitHub Copilot, Cursor, Claude Projects,
+and more — see **[USAGE.md](./USAGE.md)** for the per-tool setup: which load method to use
+(skill, project knowledge, or always-on rules file) and why. The skill itself lives in
+[`skills/glidegrail/`](./skills/glidegrail/); the raw standards are
+[`GlideGrail.md`](./skills/glidegrail/GlideGrail.md).
 
 ## What's inside
 
-[`GlideGrail.md`](./GlideGrail.md)
+[`GlideGrail.md`](./skills/glidegrail/GlideGrail.md)
 covers, as enforceable conventions:
 
 - **Ground rules & scope**: when an agent should stop and confirm vs. just build,
