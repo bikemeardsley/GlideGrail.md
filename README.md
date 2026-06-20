@@ -75,7 +75,7 @@ Free to use, share, and adapt, including commercially, with attribution.
 ## Support
 
 If GlideGrail.md saves you time and/or you find it useful, please give this repo a Star. You can also sponsor the project by 
-[buying me a coffee](https://buymeacoffee.com/bikemeardsley) ☕. Entirely optional, always
+[buying me a coffee](https://buymeacoffee.com/bikemeardsley) ☕ or donating to [ALS Research](https://www.als.net/donate/) which is a cause that is very personal to me. Entirely optional, always
 appreciated!
 
 ---
