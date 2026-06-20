@@ -1,9 +1,9 @@
-# 🏆GlideGrail.md
+![GlideGrail.md — ServiceNow coding standards for humans and AI agents](banner.png)
+
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00.svg?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/bikemeardsley)
+[![Donate to ALS Research](https://img.shields.io/badge/Donate-ALS%20Research-blueviolet.svg)](https://www.als.net/donate/)
 [![ServiceNow docs.md](https://img.shields.io/badge/ServiceNow-docs.md-62D84E.svg?logo=servicenow&logoColor=white)](https://github.com/ServiceNow/ServiceNowDocs)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg)](LICENSE)
-
-#### *ServiceNow Coding Standards for Humans and AI Agents*
 
 Most ServiceNow best practice material is scattered across community posts, docs, tribal
 knowledge, or just not widely known, and written to be read by a human. GlideGrail.md consolidates years of experience and common rules
