@@ -14,53 +14,57 @@
 ## Table of Contents
 
 1. [Agent Ground Rules](#agent-ground-rules)
-2. [Naming Conventions](#naming-conventions)
-3. [General Coding Standards](#general-coding-standards)
-4. [Application Scope](#application-scope)
-5. [Code Readability](#code-readability)
-6. [Official API Preference](#official-api-preference)
-7. [Do Not Use](#do-not-use)
-8. [System Properties](#system-properties)
-9. [GlideRecord](#gliderecord)
-10. [Performance at Scale](#performance-at-scale)
-11. [GlideForm](#glideform)
-12. [GlideAJAX](#glideajax)
-13. [Script Includes](#script-includes)
-14. [UI Policies](#ui-policies)
-15. [Business Rules](#business-rules)
-16. [Events](#events)
-17. [Client Scripts](#client-scripts)
-18. [UI Actions](#ui-actions)
-19. [Access Control Lists (ACLs)](#access-control-lists-acls)
-20. [Logging](#logging)
-21. [Error Handling](#error-handling)
-22. [Operational Hygiene](#operational-hygiene)
-23. [Messages & i18n](#messages--i18n)
-24. [Notifications](#notifications)
-25. [Scheduled Jobs](#scheduled-jobs)
-26. [Multi-row Variable Sets (MRVS)](#multi-row-variable-sets-mrvs)
-27. [Attachments](#attachments)
-28. [Service Catalog — Items & Record Producers](#service-catalog--items--record-producers)
-29. [Update Sets](#update-sets)
-30. [Flow Designer](#flow-designer)
-31. [CMDB](#cmdb)
-32. [UI Builder (Next Experience)](#ui-builder-next-experience)
-33. [Service Portal — Widgets](#service-portal--widgets)
-34. [Service Portal — AngularJS Providers](#service-portal--angularjs-providers)
-35. [Service Portal — Server Communication](#service-portal--server-communication)
-36. [Service Portal — Client-Side State](#service-portal--client-side-state)
-37. [Service Portal — SCSS](#service-portal--scss)
-38. [Service Portal — Styling Conventions](#service-portal--styling-conventions)
-39. [Service Portal — Accessibility (WCAG)](#service-portal--accessibility-wcag)
-40. [Service Portal — Moment.js i18n](#service-portal--momentjs-i18n)
-41. [Automated Test Framework (ATF)](#automated-test-framework-atf)
-42. [Import Sets & Transform Maps](#import-sets--transform-maps)
-43. [Integrations — General](#integrations--general)
-44. [Integrations — Scripted REST API](#integrations--scripted-rest-api)
-45. [Integrations — Integration Hub & Custom Spokes](#integrations--integration-hub--custom-spokes)
-46. [Integrations — OAuth 2.0](#integrations--oauth-20)
-47. [Integrations — LDAP User Import](#integrations--ldap-user-import)
-48. [Integrations — Security](#integrations--security)
+2. [Technical Debt](#technical-debt)
+3. [Naming Conventions](#naming-conventions)
+4. [General Coding Standards](#general-coding-standards)
+5. [Application Scope](#application-scope)
+6. [Configurability](#configurability)
+7. [Code Readability](#code-readability)
+8. [Official API Preference](#official-api-preference)
+9. [Do Not Use](#do-not-use)
+10. [Tables, Fields & Choices](#tables-fields--choices)
+11. [Database Views](#database-views)
+12. [System Properties](#system-properties)
+13. [GlideRecord](#gliderecord)
+14. [Performance at Scale](#performance-at-scale)
+15. [GlideForm](#glideform)
+16. [GlideAJAX](#glideajax)
+17. [Script Includes](#script-includes)
+18. [UI Policies](#ui-policies)
+19. [Business Rules](#business-rules)
+20. [Events](#events)
+21. [Client Scripts](#client-scripts)
+22. [UI Actions](#ui-actions)
+23. [Access Control Lists (ACLs)](#access-control-lists-acls)
+24. [Logging](#logging)
+25. [Error Handling](#error-handling)
+26. [Operational Hygiene](#operational-hygiene)
+27. [Messages & i18n](#messages--i18n)
+28. [Notifications](#notifications)
+29. [Scheduled Jobs](#scheduled-jobs)
+30. [Multi-row Variable Sets (MRVS)](#multi-row-variable-sets-mrvs)
+31. [Attachments](#attachments)
+32. [Service Catalog — Items & Record Producers](#service-catalog--items--record-producers)
+33. [Update Sets](#update-sets)
+34. [Flow Designer](#flow-designer)
+35. [CMDB](#cmdb)
+36. [UI Builder (Next Experience)](#ui-builder-next-experience)
+37. [Service Portal — Widgets](#service-portal--widgets)
+38. [Service Portal — AngularJS Providers](#service-portal--angularjs-providers)
+39. [Service Portal — Server Communication](#service-portal--server-communication)
+40. [Service Portal — Client-Side State](#service-portal--client-side-state)
+41. [Service Portal — SCSS](#service-portal--scss)
+42. [Service Portal — Styling Conventions](#service-portal--styling-conventions)
+43. [Service Portal — Accessibility (WCAG)](#service-portal--accessibility-wcag)
+44. [Service Portal — Moment.js i18n](#service-portal--momentjs-i18n)
+45. [Automated Test Framework (ATF)](#automated-test-framework-atf)
+46. [Import Sets & Transform Maps](#import-sets--transform-maps)
+47. [Integrations — General](#integrations--general)
+48. [Integrations — Scripted REST API](#integrations--scripted-rest-api)
+49. [Integrations — Integration Hub & Custom Spokes](#integrations--integration-hub--custom-spokes)
+50. [Integrations — OAuth 2.0](#integrations--oauth-20)
+51. [Integrations — LDAP User Import](#integrations--ldap-user-import)
+52. [Integrations — Security](#integrations--security)
 
 ---
 
@@ -83,6 +87,30 @@ These standards exist to remove guesswork. Where ambiguity remains anyway, **con
 
 ---
 
+## Technical Debt
+
+Agents accrue debt silently — a shortcut here, a skipped test there — and the cost surfaces months later. The directive is the inverse of how an agent defaults: **recognise debt and surface it; never bury it.**
+
+**Stop and confirm before incurring structural debt.** Treat these as [Agent Ground Rules](#agent-ground-rules) confirm-before gates:
+
+- The only way to make something work is to **modify a baseline/OOB record** (Business Rule, Script Include, UI Policy, view) or change a **base/extended table** (e.g. `task`). Surface the trade-off — upgrade risk, blast radius — and let the user decide rather than proceeding (see [Do Not Use](#do-not-use)).
+- The clean path is blocked and the only route is a **documented anti-pattern** — a synchronous AJAX call, DOM access, a nested GlideRecord, a dot-walk past three levels, a hardcoded sys_id. Name it as debt, propose the correct approach, and only take the shortcut on explicit acknowledgement.
+- A change **leaves a known gap** — missing ATF coverage, an untranslated user-facing string, a `TODO` the requirement implies but time didn't allow.
+
+**When debt is taken on deliberately, leave a marker.** A code comment stating *what* was deferred and *why*, plus a backlog/story reference where the engagement tracks one. Invisible debt is the expensive kind; a flagged shortcut is a decision, an unflagged one is a landmine.
+
+**Do not gold-plate, either.** The opposite failure is manufacturing scope — speculative configurability, abstractions for a second case that does not exist yet, defensive code for inputs that cannot occur. Match effort to the requirement. Flag genuine debt; do not invent work to avoid imagined debt.
+
+<details><summary><b>Why make this a rule?</b></summary>
+
+- **Silent debt compounds** — a shortcut nobody recorded is indistinguishable from an intentional design choice to the next reader (human or agent), so it never gets revisited until it breaks. Naming it converts an invisible liability into a tracked, prioritisable item.
+- **Modifying baseline records is the highest-interest debt on the platform** — it blocks the affected record from upgrading and can break in ways no test predicted; that is precisely why it warrants a human decision, not an agent's unilateral call.
+- **Gold-plating is debt too** — every speculative abstraction is more surface to read, test, and maintain for a requirement that may never arrive. "Match effort to the requirement" cuts both directions.
+
+</details>
+
+---
+
 ## Naming Conventions
 
 | Artifact | Convention | Example |
@@ -99,6 +127,10 @@ These standards exist to remove guesswork. Where ambiguity remains anyway, **con
 | Widget ID | `kebab-case` | `my-task-board` |
 | Update sets | `PREFIX - STRY# - Description #00N` | `SN - STRY001 - Incident Form Changes #001` |
 | Flow actions / subflows | `PREFIX - Action Name` | `SN - Add Movie to Radarr` |
+| Many-to-many (join) tables | `m2m` segment after the scope/`u_` prefix | `u_m2m_group_asset` |
+| Data-lookup tables (extend `dl_matcher`) | `dl` segment after the scope/`u_` prefix | `u_dl_assignment` |
+
+> Join and lookup tables earn a role segment so their utilitarian purpose is obvious at a glance: `u_m2m_*` for many-to-many join tables, `u_dl_*` for data-lookup tables (which extend `dl_matcher` to drive Data Lookup & Record Matching). In a scoped app the application scope prefix replaces `u_`; the `m2m` / `dl` segment still applies.
 
 ---
 
@@ -106,7 +138,7 @@ These standards exist to remove guesswork. Where ambiguity remains anyway, **con
 
 - Use `getUniqueValue()` for the current record's sys_id; `getValue('field')` for reference field sys_ids
 - Never dot-walk sys_ids — dot-walking a field returns a `GlideElement` object, not a string value
-- Server-side array iteration: `map` / `filter` / `reduce` / `sort` only; `while` for `.next()` loops; never `forEach` server-side
+- Server-side array iteration: prefer `for` / `map` / `filter` / `reduce` / `sort`; `while` for `.next()` loops. Avoid `forEach` server-side — not because it fails, but because you cannot `break` out of it and it invites side-effect loops where `map`/`filter`/`reduce` state intent directly
 - Constants Script Include: use `Object.freeze`, `UPPER_CASE` for category keys, `lower_snake_case` for values
 - Use `GlideDateTime` server-side; pass Unix ms timestamps to the client
 - Use `GlideRecordSecure` for any Script Include callable from the client side
@@ -127,7 +159,7 @@ These standards exist to remove guesswork. Where ambiguity remains anyway, **con
 <details><summary><b>Why these rules?</b></summary>
 
 - **Never dot-walk sys_ids** — `gr.assigned_to.sys_id` forces the platform to query and instantiate the *referenced* record just to read an ID that `getValue('assigned_to')` already holds on the current row. It returns a `GlideElement` (not a string) and costs a needless database round trip per row.
-- **Never `forEach` server-side** — `forEach` cannot `break`, so it always walks the entire array even after you've found what you need, and it encourages side-effect loops where `map`/`filter`/`reduce` state the intent directly. GlideRecord result sets aren't arrays at all — they're iterators, which is why `while (gr.next())` is the correct shape there.
+- **Avoid `forEach` server-side** — it runs fine; the objection is that `forEach` cannot `break`, so it always walks the entire array even after you've found what you need, and it encourages side-effect loops where `map`/`filter`/`reduce` state the intent directly. GlideRecord result sets aren't arrays at all — they're iterators, which is why `while (gr.next())` is the correct shape there.
 - **`Object.freeze` constants** — without freezing, any script can silently mutate a shared constant at runtime; with it, accidental writes fail instead of corrupting every later reader.
 - **`GlideDateTime` server-side / Unix ms to the client** — server date strings are formatted per user locale and timezone, so passing them around invites parsing bugs. An epoch-milliseconds number is unambiguous in both directions.
 - **`GlideRecordSecure` for client-callable SIs** — anything callable from the browser is an attack surface: parameters can be forged. `GlideRecordSecure` enforces ACLs on every row and field it touches, so a tampered call can't read or write what the user's roles don't allow.
@@ -152,6 +184,28 @@ These standards exist to remove guesswork. Where ambiguity remains anyway, **con
 - **Traceability** — a scope answers "what did we build?" instantly; global custom artifacts mixed with baseline take archaeology to identify.
 - **Upgrade isolation** — scoped apps declare dependencies and version as units; global customisations entangle with platform upgrades.
 - **Conflict prevention** — scope namespacing makes name collisions with other apps (and future ServiceNow features) structurally impossible.
+
+</details>
+
+---
+
+## Configurability
+
+A single principle ties together [System Properties](#system-properties), the no-hardcoding rule, and scope discipline: **anything that varies by environment, deployment, or operator choice is configuration, not a literal baked into code.** If a value could differ between dev/preprod/prod, or might need changing without a code edit, it does not belong as a hardcoded string.
+
+What this covers in practice:
+
+- **Instance URLs** — read from the platform (`gs.getProperty('glide.servlet.uri')`), never hardcoded; covered in [General Coding Standards](#general-coding-standards).
+- **Hardcoded sys_ids are a defect.** A sys_id of a specific group, user, or record pasted into a script breaks the moment that record is rebuilt in another environment or the person leaves. Resolve the record by a stable key at runtime, or make the sys_id **configuration** (a system property or a config-table row) so it is set per environment in one place.
+- **Endpoints, thresholds, feature toggles, retry counts, batch sizes** — values an operator might tune live in properties (or a config table), not constants in a Script Include.
+- **Secrets are never configuration values in `sys_properties`.** Credentials and tokens belong in **Connection & Credential aliases** (the credential store), referenced by integrations — not in a property, not in a script. See [Integrations — Security](#integrations--security).
+
+Route each value to the right mechanism — set-once/instance-wide → **System Property**; per-user → **User Preference**; many instances of the setting → **config table** — using the decision table in [System Properties](#system-properties). The environment-specific ones (SSO IdP, MID Server names, external base URLs) must also appear on the promotion checklist so the correct value is set in each environment (see [Promotion Discipline](#promotion-discipline)).
+
+<details><summary><b>Why treat this as one principle?</b></summary>
+
+- **Clone-and-promote is the test.** A scoped app that is properly configurable installs into a fresh instance and runs once its properties are set; one riddled with hardcoded URLs and sys_ids needs a code edit per environment, which defeats versioned promotion.
+- **A hardcoded sys_id is invisible until it breaks.** Nothing flags it; it simply points at nothing (or the wrong thing) in the next instance. Making it configuration turns a silent cross-environment failure into a visible, settable value.
 
 </details>
 
@@ -377,6 +431,53 @@ Consolidated quick-reference of banned or near-banned patterns. Each links back 
 
 ---
 
+## Tables, Fields & Choices
+
+Naming is covered in [Naming Conventions](#naming-conventions); this section covers how the columns themselves behave once created. These are platform mechanics that directly shape design decisions — and that generated code routinely gets wrong.
+
+### Choice & State Fields
+
+- **A State field stores its *value*, not its label.** On Task-derived tables State is an integer; the dropdown text is the display label. Code and queries operate on the value (`current.state == 2`), never the label.
+- **Don't repurpose or renumber existing choice values.** Changing what an existing value *means* silently rewrites the meaning of every stored record and every script that tests it. Add new choices with new values instead.
+- **Value vs. Sequence are different fields.** The choice *Value* is what gets stored; the *Sequence* only controls dropdown order. Reordering the list does not (and must not) change stored values.
+- **State models on Task-based and custom tables follow the active/inactive convention:** values **< 7 are treated as active**, **≥ 7 as inactive**, for compatibility with legacy state-handling code. If you run out of active values below 7, use **negative numbers** rather than crossing the threshold. The mechanism that actually drives close/deactivate behaviour is the **`close_states`** (and `default_close_state`) dictionary attributes consumed by `TaskStateUtil` — set those when extending a state model rather than hardcoding numbers anywhere.
+- **Express a custom state model as a frozen-constants Script Include** (per the Constants SI rule in [General Coding Standards](#general-coding-standards)) so code reads `States.ON_HOLD` instead of the literal `3`. Expose it to the client through a GlideAjax wrapper or a Display Business Rule + `g_scratchpad` (see [GlideAJAX](#glideajax)), not by duplicating the numbers client-side.
+
+> For **open/closed queries**, still filter on the `active` field rather than enumerating state values — that rule lives in [GlideRecord](#gliderecord). This subsection governs how you *design* the state/choice model; that one governs how you *query* it.
+
+### Field Value Strategy: Default vs. Calculated vs. Derived
+
+Three different mechanisms put a value in a field. They are not interchangeable, and the most common platform bug here is treating a default as if it were calculated.
+
+| Mechanism | When it runs | Re-evaluated on update? | Use for |
+|---|---|---|---|
+| **Default value** | On insert, and computed for *display* on the new-record form | **No** — set once, never recomputed | An initial/seed value the user may then change |
+| **Calculated value** (dictionary *Calculated* flag) | On every insert **and** update | **Yes** — always overwrites | A value that is always a pure function of this record's other fields |
+| **Derived / dot-walked field** (added via Form Layout) | Read live through a reference — not stored at all | Always current; nothing to recompute | Showing a value that lives on a *referenced* record |
+
+- **The default-value trap:** on a *new-record form* the `current` object is mostly empty, so a `javascript:` default that reads `current.some_field` produces a blank — and if the user saves that blank-derived value, it sticks, because the default is **not** re-evaluated on insert once the field holds anything. Defaults are for static or independent initial values, not for deriving from other fields.
+- **Prefer a derived (dot-walked) field over a custom field that just copies a referenced value.** If you find yourself scripting a field to mirror `request_item.short_description`, delete the field and add the dot-walked field on the form instead — zero storage, zero sync logic, always current. The cheapest field is the one you never created.
+- **Calculated fields run server-side only** and should be set read-only on the client so users don't type into a value the platform will overwrite.
+
+Decision shortcut: *value from a referenced record* → derived/dot-walked (don't create a column); *value computed from this record's own fields, always current* → calculated; *seed value the user can edit* → default.
+
+---
+
+## Database Views
+
+A Database View joins multiple tables for reporting. Before building one, check whether a **reference field plus dot-walk** already gives you what you need — it almost always does, and it is cheaper. Build a view only when you must report across tables that aren't connected by a usable reference.
+
+When a view is genuinely warranted:
+
+- **Prefix the view name with `dv_`** and let the rest name the joined tables (`dv_incident_problem`).
+- **Put the smaller table (fewer rows) on the left/primary** side of the join — it makes the view materially cheaper to build.
+- **Coalesce only on indexed fields**, and avoid **SQL reserved words** in the table short-labels used inside the view.
+- **Views need their own ACLs.** Access to the underlying tables does **not** carry over — a user with rights to both source tables still can't read the view until you grant it.
+- **Views are read-only** — you cannot insert or update through one.
+- A Database View over large tables can be **compute-heavy**; treat building one as a confirm-first decision (see [Agent Ground Rules](#agent-ground-rules) / [Performance at Scale](#performance-at-scale)).
+
+---
+
 ## System Properties
 
 Use `sys_properties` for configuration values. Never hardcode values in scripts — use system properties to keep functionality dynamic and flexible.
@@ -489,6 +590,19 @@ Every field access on a GlideRecord (`gr.field`, any dot-walk) returns a **Glide
 
 > **Name-collision warning:** server-side `GlideElement` and `GlideRecord.getElement()` have nothing to do with the DOM — they are pure data APIs. The *client-side* `g_form.getElement()` is an unrelated method that returns a DOM node and falls under the no-DOM rule in [Client Scripts](#client-scripts).
 
+### Snapshot a Record to a Plain Object
+
+To copy a whole record's field values into a plain JavaScript object — instead of hand-writing a `getValue()` per field, or (worse) pushing live GlideElements into an array — use the OOB `GlideRecordUtil`:
+
+```javascript
+var snapshot = {};
+new GlideRecordUtil().populateFromGR(snapshot, grRecord, { sys_created_on: true, sys_updated_on: true });
+// populateFromGR() fills the object you pass in: snapshot is now field → value,
+// safe to JSON.stringify or hand across a boundary (no live GlideElements inside)
+```
+
+`getFields(gr)` returns just the list of populated field names if that's all you need. (Some older guides cite a `.toHashMap()` method here; `populateFromGR()` is the current documented helper — confirm specifics against the [API reference](https://github.com/ServiceNow/ServiceNowDocs).)
+
 ### GlideQuery
 
 **Use GlideRecord. Do not introduce GlideQuery into new code.** GlideQuery is an alternative API, not a successor — maintain it where you find it in existing code, but these standards build on GlideRecord.
@@ -510,6 +624,7 @@ Every field access on a GlideRecord (`gr.field`, any dot-walk) returns a **Glide
 The [GlideRecord](#gliderecord) rules cover query hygiene; this section covers what changes when tables get big and jobs run long.
 
 - **Indexes:** if a new query filters or sorts a large table on unindexed fields — especially if it shows up in *Slow Queries* — request a database index on those fields. Index creation on a large table is itself an impactful operation: schedule it and confirm with the user first (see [Agent Ground Rules](#agent-ground-rules)).
+- **Order filters cheapest-first:** when a query mixes selective/indexed conditions with expensive ones (`CONTAINS` / `LIKE` / `STARTSWITH`), add the cheap conditions first so the costly comparison runs on a smaller candidate set. On a cold cache this can cut query time dramatically; once results are cached the order matters less — write for the cold path. An unindexed `CONTAINS` on a large table is the classic offender, and pairs with the index rule above.
 - **Chunk large jobs:** never process tens of thousands of rows in one unbounded loop/transaction. Window the work — `setLimit(N)` batches ordered by `sys_id` (cursor = last processed sys_id), or split by query slices — so each transaction stays well under platform quotas and a failure loses one window, not the whole run.
 - **`updateMultiple()` / `deleteMultiple()`** beat per-row loops for uniform changes, but inherit the encoded-query danger: an invalid condition silently broadens the result. Test the exact query on sub-production first, and treat these as confirm-first operations.
 - **Cache lookups:** anything you would query repeatedly inside a loop belongs in a hash map built once before the loop (same principle as the nested-query ban). `gs.getProperty()` is cache-backed and fine to call freely.
@@ -544,6 +659,15 @@ g_form.setValue('assigned_to', userSysId, userDisplayName);
 ```
 
 When the display value isn't known client-side, retrieve both via a single GlideAJAX call and set them together in the callback.
+
+### setVisible() vs. setDisplay()
+
+Both hide a field client-side, but they differ in what happens to the space it occupied:
+
+- `g_form.setDisplay(field, false)` removes the field **and collapses** the empty space — the rest of the form closes up. This is the usual choice.
+- `g_form.setVisible(field, false)` hides the field but **leaves the blank gap** where it was. Use it only when you deliberately want the layout position preserved.
+
+Hiding a field with either method does **not** clear its value — see the gotcha under [UI Policies](#ui-policies).
 
 ---
 
@@ -640,6 +764,8 @@ Creating a *new* SI is correct only when no SI owns that table/responsibility ye
 - Bundle multiple field actions into a single UI Policy where possible
 - Mandatory fields **cannot** be hidden
 - Mandatory fields **cannot** be made read-only
+
+> **Hiding a field does not clear its value.** A value entered while a field was visible stays in the field when a UI Policy (or `g_form.setDisplay` / `setVisible`) later hides it — it is still submitted, still written to the database, and can still trigger Business Rules and be read by scripts. If hiding must also clear, clear the value explicitly. And because UI Policies are client-side only, a value that must *never* be set under a condition is enforced with a Data Policy or Business Rule (see [UI Policy vs. Data Policy](#ui-policy-vs-data-policy) below), not by hiding the field.
 
 **Date/Time validation exception:**
 Simple date/time validations in record producers or catalog items may use a UI Policy with a scripted message, because handling timezone and user format correctly in a Client Script is complex. Acceptable validations:
@@ -1020,6 +1146,7 @@ Logging tells you what happened; error *handling* decides what happens next. The
 
 - Wrap operations that can fail **for reasons outside your code's control**: REST/SOAP calls, JSON parsing of external input, CRUD that ACLs might block, type coercion of untrusted values
 - Do **not** blanket-wrap entire methods — a try/catch around everything hides which operation actually failed and encourages catch-and-ignore
+- **Prevent over catch when the failure is predictable.** If you can test the condition cheaply — an API that may be absent (`typeof gel !== 'undefined'`), a value that may be null (`gs.nil(x)`), a record that may not exist (`if (grRef.get(id))`) — guard with that check rather than relying on try/catch to mop it up afterward. A guard states the condition you expect; a catch hides it. Reserve try/catch for failures you genuinely cannot prevent (external calls, parsing untrusted input).
 - **An empty catch block is a defect.** Catch in order to *act*: log with context, then recover, return a failure contract, or rethrow. Never swallow silently.
 
 ### Return contracts
@@ -1263,6 +1390,12 @@ Do not use a Catalog Item when a Record Producer would be more direct, and vice 
 
 </details>
 
+
+### Keep One Update Set to One Scope
+
+A single update set must contain updates from **only one application scope**. The platform mostly prevents cross-scope capture, but it leaks: some tables live in one scope while the records in them are owned by another, so an update can silently land in a different scope than the set it is meant to belong to. The set then cannot be committed until every update in it shares the set's scope.
+
+When a change touches more than one scope (or global plus a scope), keep a **separate update set per scope** and switch the active set as you switch scope. Before completing any set, open its `sys_update_xml` rows, add the **Application** column, and confirm every update's scope matches the set. (This is a global / cross-scope concern; scoped apps move through the application repository per the rules above, which sidesteps it.)
 
 **Moving multiple update sets:**
 Use **batching**, not merging. Batching:
