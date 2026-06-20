@@ -48,14 +48,14 @@ Every other tool loads the skill from [`skills/glidegrail/`](./skills/glidegrail
 
 | Area | Covers |
 |---|---|
-| 📐 **Ground rules & scope** | When an agent should confirm vs. build, scoped-app-first discipline, code readability, and a "Do Not Use" table of banned patterns |
+| 📐 **Ground rules & scope** | When an agent should confirm vs. build, scoped-app-first discipline, configuration over hardcoding (no hardcoded URLs or sys_ids), recognising and flagging technical debt before incurring it, code readability, and a "Do Not Use" table of banned patterns |
 | 🏷️ **Naming** | Tables, fields, Script Includes, Business Rules, variables, update sets, and widgets — with a configurable `PREFIX` |
 | ⚙️ **Server-side scripting** | GlideRecord / GlideAggregate patterns, GlideElement handling, Script Include structure, GlideAjax, constants, and performance at scale |
 | 🖥️ **Client-side** | UI Policies vs. Client Scripts vs. Data Policies, GlideForm, GlideAjax, and UI Actions across classic forms and Workspaces |
 | 🔄 **Automation** | Business Rules (timing, order, recursion guards), Events, Scheduled Jobs, and Flow Designer — what belongs in a flow vs. a script |
 | 🔐 **Security** | ACL design, hardening, and debugging; integration user and data security |
 | 🪵 **Logging, errors & ops** | A 3-tier logging convention, error-handling return contracts, and pre-go-live review routines (logs, queues) |
-| 🗃️ **Data & migration** | Data model and CMDB conventions, Import Sets & Transform Maps (staging-first), and Update Sets (promotion, fix scripts) |
+| 🗃️ **Data & migration** | Data model conventions — table/field/choice design (default vs. calculated vs. derived, state-field rules) and database views — plus CMDB, Import Sets & Transform Maps (staging-first), and Update Sets (promotion, fix scripts) |
 | 🛒 **Catalog, platform UX & i18n** | Service Catalog (items vs. record producers), MRVS, attachments, system properties, notifications, messages/i18n, and UI Builder |
 | 🎨 **Service Portal** | Widgets, AngularJS providers, server communication, client-side state, SCSS, BEM, accessibility (WCAG), and Moment.js i18n |
 | 🔌 **Integrations** | Interface design and non-repudiation, Scripted REST APIs, IntegrationHub & custom spokes, OAuth 2.0, and LDAP user import |
