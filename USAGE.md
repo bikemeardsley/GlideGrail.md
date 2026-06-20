@@ -30,10 +30,22 @@ Claude Code, Claude.ai, Codex, Gemini CLI, Cursor, and Copilot.
 /plugin install glidegrail@glidegrail
 ```
 
-Or in the Claude desktop app: **Customize → Skills → +** next to "Personal plugins," paste
-`bikemeardsley/GlideGrail`, click **Sync**, then **Install**. Either way you get the skill
-with auto-updates, and the standards load automatically whenever a task is ServiceNow-related.
+**Easiest — install as a plugin.** In **Claude Code**:
 
+```bash
+/plugin marketplace add bikemeardsley/GlideGrail
+/plugin install glidegrail@glidegrail
+```
+
+In the **Claude desktop app**:
+
+1. Open **Customize → Skills**.
+2. Next to **Personal plugins**, click **+**.
+3. Click **+ Create plugin**, then **Add marketplace**.
+4. Paste `bikemeardsley/GlideGrail`, then click **Sync**.
+5. Click **Install**.
+
+Either way you get the skill with auto-updates, and the standards load automatically whenever a task is ServiceNow-related.
 **Gemini CLI — install as an extension:**
 
 ```bash
