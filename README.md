@@ -1,4 +1,4 @@
-![GlideGrail.md — ServiceNow coding standards for humans and AI agents](banner.png)
+[![GlideGrail.md — ServiceNow coding standards for humans and AI agents](banner.png)](./skills/glidegrail/GlideGrail.md)
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00.svg?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/bikemeardsley)
 [![Donate to ALS Research](https://img.shields.io/badge/Donate-ALS%20Research-blueviolet.svg)](https://www.als.net/donate/)
@@ -6,7 +6,7 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg)](LICENSE)
 
 Most ServiceNow best practice material is scattered across community posts, docs, tribal
-knowledge, or just not widely known, and written to be read by a human. GlideGrail.md consolidates years of experience and common rules
+knowledge, or just not widely known, and written to be read by a human. [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) consolidates years of experience and common rules
 into a single reference written to be consumed by a model: concrete, directive, and
 specific enough to change what your AI assistant (Claude, ChatGPT, Codex, Gemini, Copilot,
 Cursor) actually produces.
@@ -61,7 +61,7 @@ Every other tool loads the skill from [`skills/glidegrail/`](./skills/glidegrail
 | 🔌 **Integrations** | Interface design and non-repudiation, Scripted REST APIs, IntegrationHub & custom spokes, OAuth 2.0, and LDAP user import |
 | ✅ **Testing** | The Automated Test Framework — coverage expectations, suite hierarchy, reusable base tests, and running suites via the CI/CD API |
 
-> **Works on its own; pairs well with the official ServiceNow sources.** GlideGrail.md is the
+> **Works on its own; pairs well with the official ServiceNow sources.** [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) is the
 > judgment layer (how you want code written) and needs nothing else to be useful. When you
 > want to go further, two official, free companions complement it:
 > - [ServiceNow product docs in markdown](https://github.com/ServiceNow/ServiceNowDocs) (LLM-optimized) for authoritative, current platform behavior, and
@@ -74,7 +74,7 @@ Free to use, share, and adapt, including commercially, with attribution.
 
 ## Support
 
-If GlideGrail.md saves you time and/or you find it useful, please give this repo a Star. You can also sponsor the project by 
+If [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) saves you time and/or you find it useful, please give this repo a Star. You can also sponsor the project by 
 [buying me a coffee](https://buymeacoffee.com/bikemeardsley) ☕ or donating to [ALS Research](https://www.als.net/donate/) which is a cause that is very personal to me. Entirely optional, always
 appreciated!
 
