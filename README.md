@@ -16,14 +16,14 @@ Equally useful as a human reference or a review checklist.
 ## 🚀 Quick start
 
 **Setting this up in your assistant?** See [USAGE.md](./USAGE.md) for step-by-step setup for every
-tool (Claude, ChatGPT, Codex, GitHub Copilot, Cursor, Gemini), and which load method to use for
-each.
+tool (Claude, ChatGPT, Codex, GitHub Copilot, Cursor, Gemini, Open WebUI), and which load method
+to use for each.
 
 The quickest installs:
 
 **Claude Code / Claude desktop app** - install as a plugin:
 ```bash
-/plugin marketplace add bikemeardsley/GlideGrail
+/plugin marketplace add bikemeardsley/GlideGrail.md
 /plugin install glidegrail@glidegrail
 ```
 **Claude desktop app** - install as a plugin:
@@ -31,13 +31,17 @@ The quickest installs:
 1. Open **Customize → Skills**.
 2. Next to **Personal plugins**, click **+**.
 3. Click **+ Create plugin**, then **Add marketplace**.
-4. Paste `bikemeardsley/GlideGrail`, then click **Sync**.
+4. Paste `bikemeardsley/GlideGrail.md`, then click **Sync**.
 5. Click **Install**.
 
 **Gemini CLI** — install as an extension:
 ```bash
-gemini extensions install https://github.com/bikemeardsley/GlideGrail
+gemini extensions install https://github.com/bikemeardsley/GlideGrail.md
 ```
+
+**Open WebUI** — install as a Function that auto-injects the standards for any model (local or cloud):
+one click via the community hub — [Enforcement Filter](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7) (recommended), plus the optional
+[Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. Details: [`open-webui/`](./open-webui/).
 
 Every other tool loads the skill from [`skills/glidegrail/`](./skills/glidegrail/) (raw standards:
 [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md)) see [USAGE.md](./USAGE.md) for the steps.

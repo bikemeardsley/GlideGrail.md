@@ -23,17 +23,10 @@ until your prompt looks like ServiceNow work, then loads the full standards on d
 costs almost nothing in context until it's actually needed. The same skill works across
 Claude Code, Claude.ai, Codex, Gemini CLI, Cursor, and Copilot.
 
-**Easiest — install as a plugin (Claude Code & the Claude desktop app):**
-
-```bash
-/plugin marketplace add bikemeardsley/GlideGrail
-/plugin install glidegrail@glidegrail
-```
-
 **Easiest — install as a plugin.** In **Claude Code**:
 
 ```bash
-/plugin marketplace add bikemeardsley/GlideGrail
+/plugin marketplace add bikemeardsley/GlideGrail.md
 /plugin install glidegrail@glidegrail
 ```
 
@@ -42,14 +35,14 @@ In the **Claude desktop app**:
 1. Open **Customize → Skills**.
 2. Next to **Personal plugins**, click **+**.
 3. Click **+ Create plugin**, then **Add marketplace**.
-4. Paste `bikemeardsley/GlideGrail`, then click **Sync**.
+4. Paste `bikemeardsley/GlideGrail.md`, then click **Sync**.
 5. Click **Install**.
 
 Either way you get the skill with auto-updates, and the standards load automatically whenever a task is ServiceNow-related.
 **Gemini CLI — install as an extension:**
 
 ```bash
-gemini extensions install https://github.com/bikemeardsley/GlideGrail
+gemini extensions install https://github.com/bikemeardsley/GlideGrail.md
 ```
 
 **Any other tool — use the skill folder directly.** The skill lives at
@@ -72,7 +65,7 @@ need the standards to be present versus how much context you want to spend.
 
 ### Claude — claude.ai (web / desktop / mobile)
 - **Plugin (desktop app):** Customize → Skills → **+** next to "Personal plugins" → paste
-  `bikemeardsley/GlideGrail` → Sync → Install.
+  `bikemeardsley/GlideGrail.md` → Sync → Install.
 - **Skill upload (web, paid plans):** Settings → Skills → upload the zipped `glidegrail/`
   folder. Loads on demand in any chat.
 - **Project knowledge:** create a Project, add `GlideGrail.md` to its knowledge, and add
@@ -80,7 +73,7 @@ need the standards to be present versus how much context you want to spend.
   every chat in that Project.
 
 ### Claude Code
-- **Plugin (recommended):** `/plugin marketplace add bikemeardsley/GlideGrail` then
+- **Plugin (recommended):** `/plugin marketplace add bikemeardsley/GlideGrail.md` then
   `/plugin install glidegrail@glidegrail`. Auto-updates; loads on demand.
 - **Skill folder (manual):** copy `skills/glidegrail/` into `.claude/skills/` (shared via the
   repo) or `~/.claude/skills/` (personal, all projects).
@@ -120,7 +113,7 @@ need the standards to be present versus how much context you want to spend.
 - **Gemini CLI — extension (recommended):** one command installs this repo as an extension,
   with auto-updates:
   ```bash
-  gemini extensions install https://github.com/bikemeardsley/GlideGrail
+  gemini extensions install https://github.com/bikemeardsley/GlideGrail.md
   ```
   Gemini loads the bundled skill on demand; update later with
   `gemini extensions update glidegrail`. No build step — it's pure markdown.
@@ -128,6 +121,31 @@ need the standards to be present versus how much context you want to spend.
 - **Gemini app — Gem:** create a Gem, add *"Follow GlideGrail.md for all ServiceNow code"* to
   its instructions, and upload [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) as a
   context file.
+
+### Open WebUI
+
+Open WebUI gets its own mechanism — a **Filter function** that runs in the platform's request
+pipeline, so the standards are injected automatically for **any** model you serve (local
+Ollama models, OpenRouter, anything), with no model cooperation needed.
+
+- **Filter — automatic enforcement (recommended; requires admin):** install
+  [GlideGrail ServiceNow Coding Standards Enforcement](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7)
+  from the community hub (or import/paste from [`open-webui/`](./open-webui/)), **Enable** it,
+  toggle **Global**. It detects ServiceNow topics and injects only the relevant standards
+  sections; non-ServiceNow chats are untouched. On a ServiceNow-dedicated instance or model,
+  set the `assume_servicenow_context` valve to `true`; for small local models lower
+  `char_budget`.
+- **Tool — on-demand lookup (optional companion):** install
+  [GlideGrail ServiceNow Coding Standards Lookup](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99)
+  so models with solid function-calling can pull specific sections mid-chat
+  (`get_glidegrail_guidance("acl debugging")`). Don't rely on it alone for enforcement —
+  many local models never call tools.
+- **No admin rights? Knowledge base:** Workspace → Knowledge → upload
+  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md), then reference it with `#` in chat or
+  attach it to a custom model with an instruction to follow it.
+
+Full valve reference, deployment profiles, and install options:
+[`open-webui/README.md`](./open-webui/README.md).
 
 ### Any other assistant
 - Drop an **`AGENTS.md`** at the repo root pointing to

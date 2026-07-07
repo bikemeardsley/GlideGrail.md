@@ -1,0 +1,6 @@
+# Local Claude Code settings (not part of the distribution)
+.claude/
+
+# Python bytecode (from make_import_json.py / local testing)
+__pycache__/
+*.pyc
