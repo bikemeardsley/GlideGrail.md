@@ -315,6 +315,19 @@ KEYWORD_MAP: Dict[str, Dict[str, List[str]]] = {
             "destructive operation",
         ],
     },
+    "Technical Debt": {
+        "specific": [],
+        "vocab": [
+            "baseline record",
+        ],
+        "generic": [
+            "technical debt",
+            "tech debt",
+            "gold plating",
+            "gold-plating",
+            "upgrade risk",
+        ],
+    },
     "Naming Conventions": {
         "specific": [],
         "vocab": [
@@ -373,6 +386,22 @@ KEYWORD_MAP: Dict[str, Dict[str, List[str]]] = {
             "app scope",
             "custom application",
             "accessible from",
+        ],
+    },
+    "Configurability": {
+        "specific": [
+            "gs.getProperty",
+            "glide.servlet.uri",
+            "hardcoded sys_id",
+        ],
+        "vocab": [],
+        "generic": [
+            "configurability",
+            "hardcoded url",
+            "hardcoded value",
+            "feature toggle",
+            "config table",
+            "instance url",
         ],
     },
     "Code Readability": {
@@ -438,6 +467,35 @@ KEYWORD_MAP: Dict[str, Dict[str, List[str]]] = {
             "anti-pattern",
             "anti pattern",
         ],
+    },
+    "Tables, Fields & Choices": {
+        "specific": [
+            "TaskStateUtil",
+            "close_states",
+            "default_close_state",
+            "dot-walked",
+        ],
+        "vocab": [
+            "state model",
+            "choice list",
+        ],
+        "generic": [
+            "state field",
+            "choice field",
+            "calculated field",
+            "default value",
+            "derived field",
+            "choice values",
+        ],
+    },
+    "Database Views": {
+        "specific": [],
+        "vocab": [
+            "database view",
+            "database views",
+            "dv_",
+        ],
+        "generic": [],
     },
     "System Properties": {
         "specific": [
@@ -1324,6 +1382,7 @@ VOCAB_GROUPS: List[List[str]] = [
     ["current.update", "current.operation"],
     ["setRedirectURL", "setReturnURL"],
     ["agent workspace", "configurable workspace"],
+    ["database view", "database views", "dv_"],
 ]
 
 # ---------------------------------------------------------------------------
