@@ -100,6 +100,17 @@ need the standards to be present versus how much context you want to spend.
 - **Skill:** copy `skills/glidegrail/` to `.github/skills/glidegrail/` — activates only when
   the task matches, the lightest-context option if your repo isn't ServiceNow-only.
 
+### Microsoft 365 Copilot
+- **Custom agent (agent builder):** in Copilot chat, choose **Create agent** → add *"For all
+  ServiceNow code, follow GlideGrail.md; ask for the project's PREFIX if unknown"* to the
+  instructions → under **Knowledge**, upload
+  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) (rename to `.txt` if the upload
+  rejects `.md`), point at a copy in SharePoint/OneDrive, or add this repo's GitHub URL as a
+  website source. Retrieval is chunk-based like a ChatGPT Project — relevant sections are
+  pulled per prompt. Once it works, share the agent with your team.
+- Requires an M365 Copilot license, and agent creation can be admin-restricted — if
+  **Create agent** is missing, ask your tenant admin.
+
 ### Cursor
 - **Project rule (`.mdc`):** create `.cursor/rules/glidegrail.mdc` as an **Agent Requested**
   rule — set `alwaysApply: false`, write a clear `description` (Cursor uses it to decide when
