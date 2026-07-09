@@ -9,15 +9,15 @@ Most ServiceNow best practice material is scattered across community posts, docs
 knowledge, or just not widely known, and written to be read by a human. [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) consolidates years of experience and common rules
 into a single reference written to be consumed by a model: concrete, directive, and
 specific enough to change what your AI assistant (Claude, ChatGPT, Codex, Gemini, Copilot,
-Cursor) actually produces.
+Cursor, Cline, Roo Code, JetBrains) actually produces.
 
 Equally useful as a human reference or a review checklist.
 
 ## 🚀 Quick start
 
 **Setting this up in your assistant?** See [USAGE.md](./USAGE.md) for step-by-step setup for every
-tool (Claude, ChatGPT, Codex, GitHub Copilot, Cursor, Gemini, Open WebUI), and which load method
-to use for each.
+tool (Claude, ChatGPT, Codex, GitHub Copilot, Cursor, Cline, Roo Code, JetBrains, Gemini,
+Open WebUI), and which load method to use for each.
 
 The quickest installs:
 
