@@ -109,6 +109,28 @@ need the standards to be present versus how much context you want to spend.
 - **Remote Rule (no copy in your repo):** Settings → Rules → *Remote Rule (GitHub)* → paste
   this repo's URL. Auto-syncs when the repo updates.
 
+### Cline / Roo Code
+- **Rules-folder pointer:** create `.clinerules/glidegrail.md` (Cline) or
+  `.roo/rules/glidegrail.md` (Roo Code) in your project. Rules files are injected into
+  **every** request, so at ~41K tokens don't paste the doc itself — point instead:
+
+  ```markdown
+  For any ServiceNow code, load and follow GlideGrail.md before writing:
+  https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/skills/glidegrail/GlideGrail.md
+  (or the local copy if this repo vendors one). Substitute PREFIX with this
+  project's scoped-app prefix.
+  ```
+
+  Both tools can read a vendored copy of the doc from the repo on demand, which also works
+  fully offline — a good fit if you're pairing them with local models via Open WebUI/Ollama.
+
+### JetBrains (AI Assistant / Junie)
+- **Junie:** drop a `.junie/guidelines.md` in the project with the same short pointer text
+  as the Cline example above — Junie reads it for every task. Point, don't paste.
+- **AI Assistant:** add the pointer as a project rule / custom instruction
+  (Settings → Tools → AI Assistant), or keep a vendored `GlideGrail.md` in the repo and
+  attach it to chats with the file-context picker when working on ServiceNow code.
+
 ### Gemini
 - **Gemini CLI — extension (recommended):** one command installs this repo as an extension,
   with auto-updates:
@@ -155,6 +177,8 @@ Full valve reference, deployment profiles, and install options:
   follow the standards link before writing ServiceNow code. Also handy as the canonical
   URL for Cursor Remote Rules or an Open WebUI knowledge base.
 - Drop an **`AGENTS.md`** at the repo root pointing to
-  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) — Cursor, Copilot, and Codex all read
-  it. Otherwise the universal fallback always works: load the markdown as a system/context
+  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) — Codex, Cursor, Copilot, Zed, Jules,
+  Devin, Amp, and most other agents read it. A ready-made copy lives at
+  [`templates/AGENTS.md`](./templates/AGENTS.md): copy it in, set your `PREFIX`, done.
+  Otherwise the universal fallback always works: load the markdown as a system/context
   instruction and tell the model to follow it before writing ServiceNow code.
