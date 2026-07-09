@@ -43,6 +43,10 @@ gemini extensions install https://github.com/bikemeardsley/GlideGrail.md
 one click via the community hub — [Enforcement Filter](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7) (recommended), plus the optional
 [Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. Details: [`open-webui/`](./open-webui/).
 
+**Any web-capable agent** — no install needed: tell it to fetch
+`https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/llms.txt` and follow the
+linked standards.
+
 Every other tool loads the skill from [`skills/glidegrail/`](./skills/glidegrail/) (raw standards:
 [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md)) see [USAGE.md](./USAGE.md) for the steps.
 

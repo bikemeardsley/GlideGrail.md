@@ -148,6 +148,12 @@ Full valve reference, deployment profiles, and install options:
 [`open-webui/README.md`](./open-webui/README.md).
 
 ### Any other assistant
+- **Fetch by URL (`llms.txt`) — no install:** any agent with web access can pull the
+  standards on demand. Tell it to fetch
+  `https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/llms.txt` — an
+  [llms.txt](https://llmstxt.org/) index that links straight to the raw standards — and
+  follow the standards link before writing ServiceNow code. Also handy as the canonical
+  URL for Cursor Remote Rules or an Open WebUI knowledge base.
 - Drop an **`AGENTS.md`** at the repo root pointing to
   [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) — Cursor, Copilot, and Codex all read
   it. Otherwise the universal fallback always works: load the markdown as a system/context

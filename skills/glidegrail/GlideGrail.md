@@ -81,6 +81,7 @@ These standards exist to remove guesswork. Where ambiguity remains anyway, **con
 - Creating a **new application scope**, or putting anything in global scope (see [Application Scope](#application-scope))
 - Creating a **database index** or other instance-wide performance change
 - Building project infrastructure such as a **Tier 1 logger** (see [Logging](#logging))
+- Pushing **code or configuration changes to an instance through API access** — an instance-access MCP server, the Table API, or similar credentials; sub-production only, and see [Update Sets](#update-sets) for where such writes land
 - **Deviating from any rule in this document**
 
 **Do not confirm for:** routine artifacts that follow these standards — adding a method to the correct SI, a Business Rule built per the rules, system properties, messages, UI Policies. Just build them correctly.
@@ -1380,6 +1381,7 @@ Do not use a Catalog Item when a Record Producer would be more direct, and vice 
 - **Never back out** an update set — deploy a hotfix update set instead
 - Do not deploy **Default** update sets to another instance
 - Do not use update sets for **custom scoped applications** — scoped apps move through the application repository and/or source control (a Studio-linked repo, or ServiceNow SDK / Fluent builds deployed via the `now-sdk` CLI). Update sets inside a scoped app create a second source of truth and impact upgradability; update sets remain the vehicle for global-scope configuration only
+- **Never write code or configuration artifacts through the Table API on promoted environments** — script and config changes belong in a developer session with a named update set selected, or in a scoped app's source-control pipeline. This applies equally to AI agents holding instance credentials (e.g. via an instance-access MCP server): pushing a Script Include or Business Rule over REST is a confirm-first action, sub-production only (see [Agent Ground Rules](#agent-ground-rules))
 - For complex deployments, use a **Runbook template**
 
 <details><summary><b>Why never back out, and why batch?</b></summary>
@@ -1387,6 +1389,7 @@ Do not use a Catalog Item when a Record Producer would be more direct, and vice 
 - **Backing out only reverts what the set captured** — related records modified outside the set, data created by the deployed code, and downstream changes all survive the back-out, leaving the instance in a state nobody designed. Rolling *forward* with a hotfix set keeps every change deliberate and auditable.
 - **Batching preserves identity; merging destroys it** — a merged set is one irreversible blob: you can no longer pull one story out, see which set a change came from, or re-run collision detection per set. Batches keep each set intact while still committing in one operation, in order.
 - **No update sets inside scoped apps** — scoped apps version through the application repository (install/upgrade semantics, version numbers, dependency checks). Mixing update sets into that lifecycle creates two competing sources of truth and breaks clean upgrades.
+- **API writes land in the caller's update set** — update set capture keys off the session user's currently *selected* set, and an integration or agent user never selects one, so its configuration writes fall into **Default** — which is never deployed (rule above). The change then exists on one instance only, invisible to promotion, collision detection, and traceability. Tools that let an AI agent push scripts over REST put this failure one prompt away.
 
 </details>
 
@@ -2430,6 +2433,7 @@ The `manager` field coming from LDAP is a Distinguished Name string. It **must n
 ### Authorisation and Data Security
 
 - Limit every interface user's access to the **bare minimum** tables and fields required — granting a broad role like `itil` gives read/write access to all ITSM task tables via the Table API, even if the interface only needs access to incidents
+- Treat **AI agent credentials as integration credentials** — an agent connected through an instance-access MCP server or direct REST is an interface like any other: give it its own least-privilege user per the rules above (never a shared admin account), and be deliberate about whether it gets write access to code and configuration tables at all (see [Update Sets](#update-sets))
 - In Scripted REST APIs, always use `GlideRecordSecure` to enforce table-level ACLs — without it, a user with no roles could potentially read or modify data depending on your code
 - Require **stricter ACLs** for operations that modify data (POST, PUT, DELETE) than for read-only operations (GET)
 - Test authentication, authorisation, and ACL enforcement **before releasing** the API
