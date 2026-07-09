@@ -17,6 +17,8 @@ Three ways to get each artifact into your instance — pick whichever suits you:
    - Filter: [GlideGrail ServiceNow Coding Standards Enforcement](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7)
    - Tool: [GlideGrail ServiceNow Coding Standards Lookup](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99)
 2. **Import the JSON:** download [`glidegrail_filter.json`](glidegrail_filter.json) / [`glidegrail_tool.json`](glidegrail_tool.json) from this repo, then click **Import** (next to **+** on the Functions / Tools page) and select it. (The Import button expects Open WebUI's JSON export format — the raw `.py` won't import. The JSONs here are those same `.py` sources pre-wrapped in that format; if you fork and edit, run `python build_artifacts.py` to re-embed the doc and regenerate them.)
+
+   > **Import is first-install only.** Open WebUI's import *creates* — if GlideGrail is already installed, re-importing fails with an `Id already in use` error. **To update an existing install**, open the installed function/tool in the editor, paste the new `.py` contents over it, and save (or delete the old one, then import). Make sure of the page pairing too: filter → Functions, tool → Tools.
 3. **Paste:** click **+** (new function / new tool), paste the entire `.py` file contents, save.
 
 Then finish setup:
