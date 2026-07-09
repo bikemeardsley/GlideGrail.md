@@ -1,0 +1,5 @@
+# Distributed Open WebUI artifacts must be byte-stable LF on every platform
+# so the on-disk .py always matches the JSON `content` field, and rebuilds
+# never produce line-ending churn.
+open-webui/*.py text eol=lf
+open-webui/*.json text eol=lf

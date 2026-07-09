@@ -16,7 +16,7 @@ Three ways to get each artifact into your instance — pick whichever suits you:
 1. **Community hub (recommended):** open the listing and click **Get** — it imports straight into your instance.
    - Filter: [GlideGrail ServiceNow Coding Standards Enforcement](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7)
    - Tool: [GlideGrail ServiceNow Coding Standards Lookup](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99)
-2. **Import the JSON:** download [`glidegrail_filter.json`](glidegrail_filter.json) / [`glidegrail_tool.json`](glidegrail_tool.json) from this repo, then click **Import** (next to **+** on the Functions / Tools page) and select it. (The Import button expects Open WebUI's JSON export format — the raw `.py` won't import. The JSONs here are those same `.py` sources pre-wrapped in that format; regenerate them with `make_import_json.py` if you fork and edit.)
+2. **Import the JSON:** download [`glidegrail_filter.json`](glidegrail_filter.json) / [`glidegrail_tool.json`](glidegrail_tool.json) from this repo, then click **Import** (next to **+** on the Functions / Tools page) and select it. (The Import button expects Open WebUI's JSON export format — the raw `.py` won't import. The JSONs here are those same `.py` sources pre-wrapped in that format; if you fork and edit, run `python build_artifacts.py` to re-embed the doc and regenerate them.)
 3. **Paste:** click **+** (new function / new tool), paste the entire `.py` file contents, save.
 
 Then finish setup:
@@ -35,23 +35,23 @@ Then finish setup:
 
 Filters run on Open WebUI's native **`/api/chat/completions`** endpoint when the function is enabled **Global** (or assigned to the model being called) — so API clients, scripts, and MCP bridges that talk to that endpoint get the same standards injection as the chat UI. Filters do **not** run on the `/ollama` or `/openai` passthrough proxy routes; those forward requests untouched.
 
-## Where the standards come from (two source valves)
+## Where the standards come from (works out of the box)
 
-The filter needs the `GlideGrail.md` document. It tries, in order:
+**You don't need to provide `GlideGrail.md` — a copy is bundled inside the filter.** It resolves the document in this priority order (each step is used only when the one above it isn't available):
 
-1. **`source_path`** (preferred) — a local file inside the Open WebUI container, default `/app/backend/data/glidegrail/GlideGrail.md`. Mount or copy the file there, e.g.:
+1. **`source_path`** (optional override, empty by default) — a local file. Set this **only** if you want to pin your *own* copy (e.g. a volume-mounted file with house edits); when set, present, and actually containing the document it wins over everything below and is re-read whenever its mtime changes. A file that exists but isn't the standards document (parses to zero sections) is **ignored with a log message** — it never disables the fallbacks below. Most installs leave this empty.
+2. **`source_url`** (the default experience) — with `source_path` empty, the filter fetches the GitHub raw URL of `GlideGrail.md` and caches it for `cache_ttl_minutes` (default 24h). This is why installs stay up to date automatically: when the standards change in the repo, every install picks them up within a day — no re-install. A failed fetch — including a response that isn't the real document, like a captive-portal or proxy login page served as HTTP 200 — is never cached as content; the filter backs off (starting at **60s, doubling up to 1h** while the URL stays unreachable) and serves the best copy it has in the meantime, so an outage never adds recurring network latency to your messages.
+3. **Embedded copy** (offline floor) — a gzip+base64 snapshot of `GlideGrail.md` lives inside the `.py` itself. If `source_path` is empty and `source_url` is unset or unreachable (air-gapped instance, blocked egress, GitHub down), the filter uses this. **So it works with zero configuration and no network.** The bundled copy is refreshed on each release; whenever `source_url` is reachable, the live copy wins over it.
 
-   ```bash
-   # docker cp one-off
-   docker exec <container> mkdir -p /app/backend/data/glidegrail
-   docker cp skills/glidegrail/GlideGrail.md <container>:/app/backend/data/glidegrail/GlideGrail.md
-   ```
+Practical guidance:
 
-   or add a volume/bind mount in your compose file. The file is re-read automatically whenever its mtime changes — edit it live, no restart needed.
+- **Most people: change nothing.** Online → live updates via `source_url`; offline → the embedded copy.
+- **Permanently offline / want zero network calls:** set `source_url` empty. The embedded copy is used instantly, no fetch attempt.
+- **Own edited copy:** set `source_path` to your file.
 
-2. **`source_url`** — if the path does not exist, the filter fetches the GitHub raw URL (default points at this repo's `main` branch) and caches it in memory for `cache_ttl_minutes`. Zero setup, but requires outbound network access from the container. If a fetch fails, the filter backs off for **60 seconds** before retrying (serving any stale cache in the meantime), so an outage never adds a network timeout to every message.
+The filter never breaks a chat — if every source somehow fails (e.g. a corrupted build with an empty embedded blob), it passes the request through untouched.
 
-If both fail, the filter silently does nothing — it never breaks a chat.
+> **Upgrading from 1.0.x:** clearing `source_url` used to make the filter silently inert when no local file existed. Since the doc ships embedded, that configuration now *works* instead (the bundled copy serves, with zero network calls). To turn injection off, disable the Function itself — there is deliberately no "installed but doc-less" state anymore.
 
 ## Pipelines & bridge callers (sentinel)
 
@@ -114,8 +114,8 @@ The rule of thumb: **one API token, or two independent ServiceNow-flavored conce
 | Valve | Default | Description |
 |---|---|---|
 | `priority` | `0` | Filter execution order relative to other filters (lower runs earlier). |
-| `source_path` | `/app/backend/data/glidegrail/GlideGrail.md` | Local path to GlideGrail.md inside the container; preferred when it exists, re-read on mtime change. |
-| `source_url` | GitHub raw URL of `skills/glidegrail/GlideGrail.md` | Fallback source when the path is missing; response cached in memory. |
+| `source_path` | *(empty)* | Optional local override — a file path that wins over `source_url` and the embedded copy when set and present; re-read on mtime change. Leave empty for the normal setup. |
+| `source_url` | GitHub raw URL of `skills/glidegrail/GlideGrail.md` | Where the doc is fetched (and cached) so installs auto-update. Falls back to the embedded copy if unreachable; set empty to always use the embedded copy with no network. |
 | `cache_ttl_minutes` | `1440` | How long the URL-fetched document is cached (minutes). |
 | `char_budget` | `24000` | Max characters of injected standards; sections dropped/truncated to fit. |
 | `scan_last_n_user_messages` | `3` | How many recent user messages are scanned for triggers. |
