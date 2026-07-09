@@ -2,7 +2,7 @@
 title: GlideGrail ServiceNow Coding Standards Enforcement
 author: Michael Beardsley
 author_url: https://github.com/bikemeardsley
-version: 1.1.0
+version: 1.2.0
 license: CC-BY-4.0
 description: ENFORCEMENT (push) — automatically detects ServiceNow development topics in the conversation and injects the relevant GlideGrail coding-standard sections into the system prompt before the model answers. Works with ANY model (no function-calling needed); silent on non-ServiceNow chats. Install this one for guaranteed standards; the separate "GlideGrail ServiceNow Coding Standards Lookup" TOOL is an optional companion that lets capable models pull additional sections on demand.
 required_open_webui_version: 0.6.0
@@ -2485,10 +2485,15 @@ class Filter:
             description="Minimum token-overlap score a section needs to be selected by the search fallback.",
         )
         always_include: str = Field(
-            default="Agent Ground Rules, Do Not Use",
+            default=(
+                "Agent Ground Rules, Do Not Use, Naming Conventions, "
+                "Official API Preference"
+            ),
             description=(
                 "Comma-separated section titles injected whenever any other "
-                "section fires (never on their own)."
+                "section fires (never on their own). These cross-cutting "
+                "basics (~10K chars) ride along with every injection; trim "
+                "the list for small-context local models."
             ),
         )
         show_status: bool = Field(
@@ -2598,7 +2603,7 @@ class Filter:
         response = requests.get(
             url,
             timeout=10,
-            headers={"User-Agent": "glidegrail-openwebui-filter/1.1.0"},
+            headers={"User-Agent": "glidegrail-openwebui-filter/1.2.0"},
         )
         response.raise_for_status()
         return response.text

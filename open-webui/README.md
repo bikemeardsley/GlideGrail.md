@@ -124,7 +124,7 @@ The rule of thumb: **one API token, or two independent ServiceNow-flavored conce
 | `search_fallback` | `true` | If no topical keyword hits (matches on `always_include` sections alone don't count) but the prompt mentions ServiceNow generally, run a token-overlap search over the document. |
 | `search_top_k` | `2` | Max sections the search fallback may add. |
 | `min_search_score` | `3` | Minimum overlap score for a section to qualify in the search fallback. |
-| `always_include` | `Agent Ground Rules, Do Not Use` | Comma-separated section titles injected whenever anything else fires. |
+| `always_include` | `Agent Ground Rules, Do Not Use, Naming Conventions, Official API Preference` | Comma-separated section titles injected whenever anything else fires (~10K chars of cross-cutting basics; trim for small local models). |
 | `sentinel_token` | `<<<GLIDEGRAIL_ENFORCE>>>` | Deterministic trigger for pipelines/bridges: found in any message → stripped everywhere, context armed, standards injected. Empty string disables. |
 | `sentinel_inject` | `sections` | What a sentinel trigger injects: `sections` (relevant sections, budget-capped) or `full` (entire document, ignores `char_budget` — big-context models only). |
 | `show_status` | `true` | Show a status line in the UI ("GlideGrail: injected N section(s): ..."). |
