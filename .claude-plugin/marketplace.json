@@ -10,6 +10,10 @@
       "name": "glidegrail",
       "source": "./",
       "description": "ServiceNow coding standards for humans and AI agents — naming, server/client patterns, Flow Designer, ACLs, integrations, Service Portal, ATF, and more."
+    },
+    {
+      "name": "servicenow-docs",
+      "source": "./servicenow-docs"
     }
   ]
 }
