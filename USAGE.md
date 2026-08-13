@@ -226,6 +226,13 @@ Restart Claude, then run `/mcp` — a `fetch` server should be listed and connec
 isn't, `uv` is almost certainly missing or not yet on `PATH`. The first launch is slower while
 `uvx` downloads and caches the server.
 
+**Claude Desktop needs one extra step.** Desktop lists the plugin's bundled Fetch server under
+**Connectors**, but can't start it from there, so the server has to be added to Desktop's own
+config once: fully quit Claude Desktop, open **Settings → Developer → Edit Config**, and merge
+`"fetch": { "command": "uvx", "args": ["--with", "mcp<2", "mcp-server-fetch"] }` into the
+`mcpServers` object in `claude_desktop_config.json` (keeping any servers already there), then
+relaunch. Full steps: [Claude Desktop setup](https://github.com/bikemeardsley/claude-servicenow-docs#claude-desktop-setup).
+
 **Tradeoffs.** Retrieval is online and file-at-a-time: always current and light on context,
 but it needs internet access and can't grep the whole corpus. For offline use or full-corpus
 search, clone the docs repo and point a filesystem or git MCP server at it instead.

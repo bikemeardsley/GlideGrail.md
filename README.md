@@ -43,7 +43,8 @@ ServiceNow publishes today:
 /plugin marketplace add bikemeardsley/claude-servicenow-docs
 /plugin install servicenow-docs@servicenow-docs
 ```
-Requires [`uv`](https://docs.astral.sh/uv/) (a one-line install) and a restart of Claude — see
+Requires [`uv`](https://docs.astral.sh/uv/) (a one-line install) and a restart of Claude, plus
+one extra config step on Claude Desktop — see
 [that repo](https://github.com/bikemeardsley/claude-servicenow-docs) for the two-minute setup.
 
 **Gemini CLI** — install as an extension:
