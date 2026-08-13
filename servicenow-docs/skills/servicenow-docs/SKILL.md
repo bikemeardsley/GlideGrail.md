@@ -13,6 +13,21 @@ designed for exactly this "read index, then fetch the file you need" workflow.
 You have access to the **Fetch** MCP server (bundled with this plugin). Use it to retrieve
 URLs and read them as Markdown.
 
+## If you have no fetch tool
+
+If no fetch/web-retrieval tool is available to you, the plugin's bundled MCP server is not
+running - almost always because `uv` (which provides `uvx`) is not installed. Say so plainly
+and give the user the fix:
+
+1. Install `uv` - macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`;
+   Windows PowerShell: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+2. Reopen the terminal so `uvx` is on `PATH`.
+3. Restart Claude, then run `/mcp` - a `fetch` server should be listed and connected.
+
+**Do not silently answer from memory as if you had consulted the docs.** If you answer
+anyway, state up front that the live documentation was unavailable and the answer comes from
+prior knowledge, which may be outdated or wrong on version-specific details.
+
 ## Base locations
 
 - **Index (always read this first):**

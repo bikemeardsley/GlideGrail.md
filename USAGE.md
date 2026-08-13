@@ -74,7 +74,9 @@ need the standards to be present versus how much context you want to spend.
 
 ### Claude Code
 - **Plugin (recommended):** `/plugin marketplace add bikemeardsley/GlideGrail.md` then
-  `/plugin install glidegrail@glidegrail`. Auto-updates; loads on demand.
+  `/plugin install glidegrail@glidegrail`. Auto-updates; loads on demand. The same
+  marketplace also ships the optional `servicenow-docs` plugin — see
+  [Companion plugin](#companion-plugin--live-servicenow-docs) at the end of this doc.
 - **Skill folder (manual):** copy `skills/glidegrail/` into `.claude/skills/` (shared via the
   repo) or `~/.claude/skills/` (personal, all projects).
 - **`CLAUDE.md` pointer:** add *"For all ServiceNow code, follow GlideGrail.md"* and keep the
@@ -193,3 +195,39 @@ Full valve reference, deployment profiles, and install options:
   [`templates/AGENTS.md`](./templates/AGENTS.md): copy it in, set your `PREFIX`, done.
   Otherwise the universal fallback always works: load the markdown as a system/context
   instruction and tell the model to follow it before writing ServiceNow code.
+
+## Companion plugin — live ServiceNow docs
+
+`GlideGrail.md` is the judgment layer: *how* you want ServiceNow code written. It works on its
+own. If you also want the agent to check *what the platform actually does*, the same
+marketplace ships a second, independent plugin: **`servicenow-docs`**.
+
+It bundles the Fetch MCP server plus a skill that reads ServiceNow's official documentation
+live from GitHub — the [`ServiceNow/ServiceNowDocs`](https://github.com/ServiceNow/ServiceNowDocs)
+repo, which publishes the AI Platform docs as one Markdown file per topic with an `llms.txt`
+index. The agent reads the index, fetches the one or two topics it needs, and cites them.
+Nothing is cloned or downloaded, and there is nothing to keep in sync.
+
+**Prerequisite — `uv`.** The Fetch server launches via `uvx`, so `uv` must be installed. It
+provisions its own Python, so Python is not a separate prerequisite.
+
+- macOS / Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Windows (PowerShell): `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+
+Reopen your terminal afterwards so `uvx` lands on `PATH`, and check with `uvx --version`.
+
+**Install (Claude Code):**
+```bash
+/plugin marketplace add bikemeardsley/GlideGrail.md
+/plugin install servicenow-docs@glidegrail
+```
+
+Restart Claude, then run `/mcp` — a `fetch` server should be listed and connected. If it
+isn't, `uv` is almost certainly missing or not yet on `PATH`. The first launch is slower while
+`uvx` downloads and caches the server.
+
+**Tradeoffs.** Retrieval is online and file-at-a-time: always current and light on context,
+but it needs internet access and can't grep the whole corpus. For offline use or full-corpus
+search, clone the docs repo and point a filesystem or git MCP server at it instead.
+
+Details and troubleshooting: [`servicenow-docs/`](./servicenow-docs/).
