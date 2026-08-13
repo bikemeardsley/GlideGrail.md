@@ -13,7 +13,8 @@
     },
     {
       "name": "servicenow-docs",
-      "source": "./servicenow-docs"
+      "source": "./servicenow-docs",
+      "description": "Live, searchable access to ServiceNow's official AI Platform documentation. Reads the ServiceNowDocs repo's llms.txt index and fetches individual topic files on demand from GitHub - always current, no local clone required."
     }
   ]
 }
