@@ -10,11 +10,6 @@
       "name": "glidegrail",
       "source": "./",
       "description": "ServiceNow coding standards for humans and AI agents — naming, server/client patterns, Flow Designer, ACLs, integrations, Service Portal, ATF, and more."
-    },
-    {
-      "name": "servicenow-docs",
-      "source": "./servicenow-docs",
-      "description": "Live, searchable access to ServiceNow's official AI Platform documentation. Reads the ServiceNowDocs repo's llms.txt index and fetches individual topic files on demand from GitHub - always current, no local clone required. Requires uv (a one-line install) so the bundled Fetch MCP server can start."
     }
   ]
 }

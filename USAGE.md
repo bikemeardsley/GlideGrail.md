@@ -74,8 +74,8 @@ need the standards to be present versus how much context you want to spend.
 
 ### Claude Code
 - **Plugin (recommended):** `/plugin marketplace add bikemeardsley/GlideGrail.md` then
-  `/plugin install glidegrail@glidegrail`. Auto-updates; loads on demand. The same
-  marketplace also ships the optional `servicenow-docs` plugin — see
+  `/plugin install glidegrail@glidegrail`. Auto-updates; loads on demand. There's also an
+  optional `servicenow-docs` plugin in a separate marketplace — see
   [Companion plugin](#companion-plugin--live-servicenow-docs) at the end of this doc.
 - **Skill folder (manual):** copy `skills/glidegrail/` into `.claude/skills/` (shared via the
   repo) or `~/.claude/skills/` (personal, all projects).
@@ -199,8 +199,8 @@ Full valve reference, deployment profiles, and install options:
 ## Companion plugin — live ServiceNow docs
 
 `GlideGrail.md` is the judgment layer: *how* you want ServiceNow code written. It works on its
-own. If you also want the agent to check *what the platform actually does*, the same
-marketplace ships a second, independent plugin: **`servicenow-docs`**.
+own. If you also want the agent to check *what the platform actually does*, there's a separate,
+independent plugin for that: **[`servicenow-docs`](https://github.com/bikemeardsley/claude-servicenow-docs)**.
 
 It bundles the Fetch MCP server plus a skill that reads ServiceNow's official documentation
 live from GitHub — the [`ServiceNow/ServiceNowDocs`](https://github.com/ServiceNow/ServiceNowDocs)
@@ -218,8 +218,8 @@ Reopen your terminal afterwards so `uvx` lands on `PATH`, and check with `uvx --
 
 **Install (Claude Code):**
 ```bash
-/plugin marketplace add bikemeardsley/GlideGrail.md
-/plugin install servicenow-docs@glidegrail
+/plugin marketplace add bikemeardsley/claude-servicenow-docs
+/plugin install servicenow-docs@servicenow-docs
 ```
 
 Restart Claude, then run `/mcp` — a `fetch` server should be listed and connected. If it
@@ -230,4 +230,4 @@ isn't, `uv` is almost certainly missing or not yet on `PATH`. The first launch i
 but it needs internet access and can't grep the whole corpus. For offline use or full-corpus
 search, clone the docs repo and point a filesystem or git MCP server at it instead.
 
-Details and troubleshooting: [`servicenow-docs/`](./servicenow-docs/).
+Details and troubleshooting: [`bikemeardsley/claude-servicenow-docs`](https://github.com/bikemeardsley/claude-servicenow-docs).

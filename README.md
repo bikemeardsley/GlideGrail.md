@@ -32,17 +32,19 @@ The quickest installs:
 2. Next to **Personal plugins**, click **+**.
 3. Click **+ Create plugin**, then **Add marketplace**.
 4. Paste `bikemeardsley/GlideGrail.md`, then click **Sync**.
-5. Click **Install** on the plugin(s) you want — the marketplace ships two (see below).
+5. Click **Install**.
 
-**Optional companion — live ServiceNow docs, no setup:** the same marketplace also ships a
-second plugin, `servicenow-docs`, which gives Claude direct access to ServiceNow's official
-product documentation. Nothing to clone or download and nothing to keep up to date — it reads
-the docs live from GitHub, so answers reflect what ServiceNow publishes today:
+**Optional companion — live ServiceNow docs, no setup:** a separate plugin,
+[`servicenow-docs`](https://github.com/bikemeardsley/claude-servicenow-docs), gives Claude
+direct access to ServiceNow's official product documentation. Nothing to clone or download and
+nothing to keep up to date — it reads the docs live from GitHub, so answers reflect what
+ServiceNow publishes today:
 ```bash
-/plugin install servicenow-docs@glidegrail
+/plugin marketplace add bikemeardsley/claude-servicenow-docs
+/plugin install servicenow-docs@servicenow-docs
 ```
 Requires [`uv`](https://docs.astral.sh/uv/) (a one-line install) and a restart of Claude — see
-[`servicenow-docs/`](./servicenow-docs/) for the two-minute setup.
+[that repo](https://github.com/bikemeardsley/claude-servicenow-docs) for the two-minute setup.
 
 **Gemini CLI** — install as an extension:
 ```bash
