@@ -222,14 +222,86 @@ Every Script Include method and every non-trivial standalone function gets a JSD
 
 ```javascript
 /**
- * addGlideListElement — add a sys_id to a comma-separated glide_list field value
+ * Add a sys_id to a comma-separated glide_list field value.
  *
  * @param {string} currentValue - existing comma-separated list (may be empty)
  * @param {string} id - sys_id to add if not already present
- * @return {string} updated comma-separated list
+ * @returns {string} updated comma-separated list
  */
 addGlideListElement: function(currentValue, id) { /* ... */ }
 ```
+
+- **Do not repeat the function name in the description** — it is already on the line below the block. Open with a verb phrase describing what the function does.
+- **Use `@returns`, not `@return`.** Both parse, but `@returns` is the canonical name; `@return` is an alias that linters rewrite. ServiceNow's own [snowdoc](https://github.com/ServiceNow/snowdoc) ESLint config runs `jsdoc/check-tag-names` at error level, which flags the alias.
+- **Omit `@author` and `@version`.** The platform already records who last touched a record and its version on the record itself; hand-maintained copies in a comment go stale immediately and violate the accuracy rule above.
+- Use `@throws {string}` when a method throws rather than returning a failure value, and `@example` for any method whose call shape is not obvious from the signature.
+
+### JSDoc Type Vocabulary
+
+Types in `@param` and `@returns` come from a fixed vocabulary — invented type names are worse than no type, because they read as authoritative:
+
+- **Primitives:** `{string}`, `{number}`, `{boolean}`
+- **Structures:** `{Object}`, `{Array}`, `{Array<string>}`, `{Array<Object>}`
+- **Platform classes:** the API class name exactly as the platform spells it — `{GlideRecord}`, `{GlideAggregate}`, `{GlideDateTime}`, `{GlideElement}`, `{GlideDuration}`
+- **Nullable / optional:** `{string|null}` when the function can return `null`; `[paramName]` in the tag name for an optional parameter
+
+Note that a *field value* read off a record is a `{string}` once extracted with `getValue()`, not a `{GlideElement}` — the type you document is the type the caller actually receives (see [GlideElement — Extract Early, Hold Deliberately](#glideelement--extract-early-hold-deliberately)).
+
+For the full set of platform class names that count as valid types, ServiceNow publishes a machine-readable allowlist in snowdoc's [`eslint.config.js`](https://github.com/ServiceNow/snowdoc/blob/main/eslint.config.js) (`SERVICENOW_TYPES`).
+
+### Script Include Class Headers
+
+A per-method header tells you what one method does. It does not tell the next developer — or an agent applying [Reuse Before You Create](#reuse-before-you-create) — whether their new logic belongs in this class at all. **Every Script Include gets a class-level header above the `Class.create()` line**, carrying a one-sentence summary plus a short "what this owns and when to use it" paragraph:
+
+```javascript
+/**
+ * @class SNIncidentService
+ * @classdesc Server-side business logic for the incident table.
+ *
+ * Owns reassignment, priority recalculation, and SLA-affecting state changes for
+ * incidents. Call this from Business Rules, scheduled jobs, flows, and ATF tests;
+ * client code reaches it through SNIncidentServiceAjax rather than directly.
+ */
+var SNIncidentService = Class.create();
+SNIncidentService.prototype = {
+
+    /**
+     * @constructor
+     * @description Initialise the SNIncidentService class.
+     */
+    initialize: function() { },
+
+    /* ... methods ... */
+
+    type: 'SNIncidentService'
+};
+```
+
+- `@classdesc` is the one-sentence summary; the paragraph below it states the class's **responsibility boundary** — what belongs here and what does not. That boundary is what makes the reuse check answerable without reading every method.
+- The `type` property closes the class and must match the class name exactly.
+- AJAX Script Includes get the same header, minus `@constructor`/`initialize` (which [must not be overridden](#script-includes)), and their paragraph should name the server SI they delegate to.
+
+### `@private` on Internal Helpers
+
+A method that exists only as a helper for other methods in the same Script Include is **private**, and is marked in two places that must agree:
+
+1. An underscore prefix on the name — `_recalculateTotals` (see [Function Design](#function-design))
+2. A `@private` tag in its JSDoc header
+
+```javascript
+/**
+ * Recalculate and write the cost roll-up for one parent record.
+ *
+ * @private
+ * @param {GlideRecord} grParent - parent record, already queried
+ * @returns {number} the recalculated total
+ */
+_recalculateTotals: function(grParent) { /* ... */ }
+```
+
+**Write the helper as private by default.** If a method is only meaningful as a step inside another method on the same class, it is private — do not expose it publicly "in case someone needs it." Promote it to a public method only when a real caller outside the class needs it, and give it a non-underscore name at that point.
+
+The platform does not enforce privacy; both markers are documentation. That is exactly why they matter — the prefix is what a reader scanning the class sees, the tag is what tooling and agents parse, and a public-looking method with no external callers invites someone to build on an internal detail. Callers outside the class must never invoke an `_`-prefixed method.
 
 ### Meaningful Inline Comments
 
@@ -262,9 +334,9 @@ Short loop counters (`i`, `j`) are fine. One- or two-letter names for anything e
 
 - **Single responsibility** — every function does one thing. If the name needs "and" to describe it, split it. This applies inside Script Includes too: many small focused methods beat one method that orchestrates everything inline.
 - **Prefer a ternary for simple conditional assignment** — `var label = isVip ? 'Priority' : 'Standard';` reads better than a four-line `if/else` that only assigns. Use `if/else` when branches have side effects or logic; **never nest ternaries** — a nested ternary is always less readable than the `if/else` it replaced.
-- **Private helpers start with `_`** — inside a Script Include, methods not intended to be called from outside the class are prefixed with an underscore (e.g. `_recalculateTotals`). The platform does not enforce privacy; the prefix is the documented signal "call this from inside this SI only," and reviewers (and agents) must treat it as such.
-- **Nested / inner functions are fine in Script Includes** — a parent method may define small inner helper functions when they are only meaningful to that method. The single-responsibility goal still applies to each inner function; if an inner helper is useful to more than one method, promote it to a `_private` method on the class.
-- **JSDoc on every method** — the [JSDoc Headers on Functions](#code-readability) rule above is not optional polish. Agents: generate the header with every method you write; a method without `@param`/`@return` documentation is incomplete.
+- **Private helpers start with `_`** — inside a Script Include, a method that exists only as a helper for other methods on the same class is prefixed with an underscore (e.g. `_recalculateTotals`) **and** tagged `@private` in its JSDoc. Write helpers as private by default; promote one to a public, non-underscore name only when a real caller outside the class needs it. See [`@private` on Internal Helpers](#private-on-internal-helpers).
+- **Nested / inner functions are fine in Script Includes** — a parent method may define small inner helper functions when they are only meaningful to that method. The single-responsibility goal still applies to each inner function; if an inner helper is useful to more than one method, promote it to an `_`-prefixed `@private` method on the class.
+- **JSDoc on every method** — the [JSDoc Headers on Functions](#jsdoc-headers-on-functions) rule above is not optional polish. Agents: generate the header with every method you write; a method without `@param`/`@returns` documentation is incomplete. The class itself gets a [class-level header](#script-include-class-headers) too.
 
 ### Cache Repeated Function Results
 
@@ -293,7 +365,7 @@ Functions that perform work should return a value the caller can check — a cou
 
 ```javascript
 /**
- * @return {boolean} true on successful save, false otherwise
+ * @returns {boolean} true on successful save, false otherwise
  */
 function saveRecord(gr) {
     var sysId = gr.update();
@@ -708,6 +780,7 @@ Hiding a field with either method does **not** clear its value — see the gotch
 ## Script Includes
 
 - Must be a **class**, not a standalone function
+- Carries a [class-level JSDoc header](#script-include-class-headers) stating what the class owns and when to call it, and a `type` property matching the class name
 - Avoid generic names (e.g. `AbcUtils`) — name reflects the target table or responsibility
 - No `eval`; no hardcoded sys_ids
 - Single responsibility — separate functions for reusability across server-side components
@@ -1156,7 +1229,7 @@ Pick a failure convention per project and apply it uniformly so callers never gu
 
 - **Simple lookups** return the value or `null` — caller checks truthiness
 - **Operations** return a consistent result object: `{ success: boolean, message: string, data: object|null }`
-- Document the contract in the method's JSDoc `@return` — the next developer (or agent) reads the signature, not the body
+- Document the contract in the method's JSDoc `@returns` — the next developer (or agent) reads the signature, not the body
 
 ### User-facing vs. log-facing
 
