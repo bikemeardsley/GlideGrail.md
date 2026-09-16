@@ -178,7 +178,7 @@ Agents accrue debt silently — a shortcut here, a skipped test there — and th
 - Scopes are the platform's tracking mechanism for "what was added on top of the system" — everything custom is identifiable, exportable, and upgrade-isolated. Work dumped into the default global application loses all of that.
 - A user adding functionality should rarely, if ever, be touching global scope. If something genuinely must live in global (rare — certain platform extension points), create a **dedicated custom application in global scope** so the work is still tracked as a named application. Never add artifacts to the default [Global] application.
 - **Cross-scope access:** expose capability deliberately — a documented Script Include API or a Scripted REST endpoint — rather than opening cross-scope table access. Set *Accessible from* consciously at creation (it cannot be changed later on actions/subflows).
-- Scoped runtime differences are real: some global-only APIs are unavailable or behave differently in scope. When a script fails in scope but worked globally, check the scoped API documentation before reaching for workarounds.
+- Scoped runtime differences are real: some global-only APIs are unavailable or behave differently in scope. When a script fails in scope but worked globally, check the scoped API documentation before reaching for workarounds. The most common cause is a baseline helper called without its `global.` prefix — see [Global helpers need the `global.` prefix](#global-helpers-need-the-global-prefix).
 
 <details><summary><b>Why scope-first?</b></summary>
 
@@ -669,10 +669,12 @@ To copy a whole record's field values into a plain JavaScript object — instead
 
 ```javascript
 var snapshot = {};
-new GlideRecordUtil().populateFromGR(snapshot, grRecord, { sys_created_on: true, sys_updated_on: true });
+new global.GlideRecordUtil().populateFromGR(snapshot, grRecord, { sys_created_on: true, sys_updated_on: true });
 // populateFromGR() fills the object you pass in: snapshot is now field → value,
 // safe to JSON.stringify or hand across a boundary (no live GlideElements inside)
 ```
+
+`GlideRecordUtil` is a global-scope Script Include, not a platform class — so it takes the `global.` prefix like every other global helper (see [Global helpers need the `global.` prefix](#global-helpers-need-the-global-prefix)). `new GlideRecordUtil()` without the prefix is rejected when the script is saved in a scoped application.
 
 `getFields(gr)` returns just the list of populated field names if that's all you need. (Some older guides cite a `.toHashMap()` method here; `populateFromGR()` is the current documented helper — confirm specifics against the [API reference](https://github.com/ServiceNow/ServiceNowDocs).)
 
@@ -784,7 +786,7 @@ Hiding a field with either method does **not** clear its value — see the gotch
 - Avoid generic names (e.g. `AbcUtils`) — name reflects the target table or responsibility
 - No `eval`; no hardcoded sys_ids
 - Single responsibility — separate functions for reusability across server-side components
-- **Always call Script Includes with the scope prefix** — `new global.SNIncidentService()`, `new x_vaultflip.VaultService()` — even from within the same scope. Cross-scope calls *require* the prefix and fail without it (often silently, or with a misleading error that points nowhere near the real cause); prefixing everywhere costs nothing, makes every call site unambiguous about where the class lives, and means code keeps working when it is copied into another scope's context (flows, fix scripts, background scripts).
+- **Always call Script Includes with the scope prefix** — `new global.SNIncidentService()`, `new x_vaultflip.VaultService()` — even from within the same scope. Cross-scope calls *require* the prefix and fail without it (often silently, or with a misleading error that points nowhere near the real cause); prefixing everywhere costs nothing, makes every call site unambiguous about where the class lives, and means code keeps working when it is copied into another scope's context (flows, fix scripts, background scripts). This includes the platform's own baseline helpers — see [Global helpers need the `global.` prefix](#global-helpers-need-the-global-prefix).
 
 **Server-side SI:**
 - One SI per target table
@@ -792,7 +794,7 @@ Hiding a field with either method does **not** clear its value — see the gotch
 
 **AJAX SI:**
 - Named `[PREFIX][TargetTable]ServiceAjax` e.g. `SNIncidentServiceAjax`
-- Extends `AbstractAjaxProcessor`
+- Extends `AbstractAjaxProcessor` — written `Object.extendsObject(global.AbstractAjaxProcessor, { … })` in a scoped app; it is a global Script Include like the rest of the [global helpers](#global-helpers-need-the-global-prefix)
 - No `initialize()` method
 - Thin wrapper only — the standard call chain is **Client Script → AJAX (client-callable) SI → non-client-callable server SI**. The AJAX class reads/validates parameters and delegates; all real logic lives in the server SI where BRs, jobs, flows, and tests can also call it
 - **Trivial-lookup exception:** tiny, logic-free reads that a Client Script cannot do itself (e.g. returning a system property value) may live directly in the AJAX SI — but the moment there is actual logic, it routes through the server SI
@@ -808,6 +810,32 @@ Hiding a field with either method does **not** clear its value — see the gotch
 - **`String(this.getParameter(...))`** — parameters arrive as Java string objects, not JavaScript strings; comparisons and `JSON.parse` can misbehave until coerced. Coerce once at the boundary and everything downstream behaves.
 
 </details>
+
+### Global helpers need the `global.` prefix
+
+**Any baseline helper that is a global-scope Script Include must be called as `global.Name` from scoped code — `GlideRecordUtil` included.** A large part of what looks like "the platform API" is actually shipped as Script Include records in the Global application: `GlideRecordUtil`, `ArrayUtil`, `JSUtil`, `TableUtils`, `GSLog`, `GlideQuery` (with `Stream` and `Optional`), `DurationCalculator`, `AbstractAjaxProcessor`, and many more. Because they sit next to `GlideRecord` and `gs` in every tutorial they read as built-ins, but the scope engine treats them exactly like a custom SI in another scope: reachable only through the `global.` namespace.
+
+```javascript
+// Scoped Script Include / Business Rule / Fix Script — all of these need the prefix
+var util = new global.GlideRecordUtil();
+var arr = new global.ArrayUtil();
+var log = new global.GSLog('x_acme.import', 'AcmeImportService');
+if (global.JSUtil.notNil(value)) { … }
+
+// Platform classes are NOT Script Includes and take no prefix
+var gr = new GlideRecord('incident');
+var now = new GlideDateTime();
+```
+
+**What goes wrong without it:** saving a script in a non-global application that references an unprefixed global helper (`new GlideRecordUtil()`) is rejected with a server error — the record does not save, and the message rarely says which name caused it. Code that arrives some other way (update set, import) saves but fails at runtime with `GlideRecordUtil is not defined` at the first call. Either way the fix is the prefix, not a workaround.
+
+**How to tell which kind of thing you are calling:**
+
+- If the name appears in **System Definition → Script Includes** with *Application* = Global, it is a Script Include and needs `global.`. If it is not there, it is a platform class and takes no prefix.
+- Some platform classes moved into *scoped namespaces* rather than global — `sn_ws.RESTMessageV2`, `sn_ws.SOAPMessageV2`, `sn_fd.FlowAPI`, `sn_sc.CartJS`. Those are still prefixed, just with the namespace the [scoped API reference](https://github.com/ServiceNow/ServiceNowDocs) lists, not `global.`.
+- A global SI is only callable from scope if its *Accessible from* is **All application scopes**. Baseline helpers are; a customer-built global SI may not be — fix the SI's setting, never copy the class into your scope.
+
+**Agents:** this is one of the most common ways generated scoped code fails to save. Before returning any server-side script for a scoped app, scan every `new X()` and every `X.method()` where `X` starts with a capital letter and is not `GlideRecord`/`GlideAggregate`/`GlideDateTime`/another documented platform class — if it is a Script Include, it carries a scope prefix.
 
 ### Reuse Before You Create
 
