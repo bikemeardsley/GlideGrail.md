@@ -3,6 +3,7 @@
   <a href="https://buymeacoffee.com/bikemeardsley"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?logo=buymeacoffee&logoColor=black"></a>
 [![Donate to ALS Research](https://img.shields.io/badge/Donate-ALS%20Research-blueviolet.svg)](https://www.als.net/donate/)
 [![ServiceNow docs.md](https://img.shields.io/badge/ServiceNow-docs.md-62D84E.svg?logo=servicenow&logoColor=white)](https://github.com/ServiceNow/ServiceNowDocs)
+[![On Smithery](https://img.shields.io/badge/Smithery-111111)](https://smithery.ai/skills/bikemeardsley/glidegrail)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg)](LICENSE)
 
 Most ServiceNow best practice material is scattered across community posts, docs, tribal
