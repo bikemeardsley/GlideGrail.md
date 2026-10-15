@@ -5,6 +5,9 @@
 graphify-out/
 .archify/
 
+# Codex plugin upload (built from .claude-plugin/plugin.json + skills/)
+glidegrail-codex.zip
+
 # Python bytecode (from build_artifacts.py / local testing)
 __pycache__/
 *.pyc
