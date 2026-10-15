@@ -160,8 +160,14 @@ need the standards to be present versus how much context you want to spend.
   **Rules**, which creates `.aiassistant/rules/*.md`), or keep a vendored `GlideGrail.md` in
   the repo and attach it to chats with the file-context picker when working on ServiceNow code.
 
-### Gemini
-- **Gemini CLI — extension (recommended):** one command installs this repo as an extension:
+### Gemini / Antigravity
+- **Antigravity CLI — plugin (recommended):** Antigravity replaces Gemini CLI. One command
+  installs this repo as a plugin with the skill:
+  ```bash
+  agy plugin install https://github.com/bikemeardsley/GlideGrail.md
+  ```
+  Already have the Gemini CLI extension? `agy plugin import gemini` converts it.
+- **Gemini CLI — extension:** one command installs this repo as an extension:
   ```bash
   gemini extensions install https://github.com/bikemeardsley/GlideGrail.md --auto-update
   ```

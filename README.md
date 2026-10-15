@@ -58,6 +58,11 @@ Requires [`uv`](https://docs.astral.sh/uv/) (a one-line install) and a restart o
 one extra config step on Claude Desktop — see
 [that repo](https://github.com/bikemeardsley/claude-servicenow-docs) for the two-minute setup.
 
+**Antigravity CLI** — install as a plugin:
+```bash
+agy plugin install https://github.com/bikemeardsley/GlideGrail.md
+```
+
 **Gemini CLI** — install as an extension:
 ```bash
 gemini extensions install https://github.com/bikemeardsley/GlideGrail.md --auto-update
