@@ -1,6 +1,6 @@
 <!--
   GlideGrail AGENTS.md template — copy this file to the ROOT of your
-  ServiceNow project repo. Codex, Cursor, Zed, Jules, Devin, Amp, and most
+  ServiceNow project repo. Codex, Cursor, Copilot, Cline, Junie, Zed, Jules, Devin, Amp, and most
   coding agents read AGENTS.md automatically. Replace <YOUR_PREFIX> below,
   and if you vendor a copy of GlideGrail.md in the repo, swap the URL for
   its local path. Delete this comment block after copying.

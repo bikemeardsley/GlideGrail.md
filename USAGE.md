@@ -3,7 +3,7 @@
 [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) is just a markdown file — wiring it into
 an assistant always comes down to "load it as context, and tell the model to follow it." But
 *how* you load it matters, because the same file behaves differently depending on the
-mechanism, and this doc is large (~24,000 words, roughly **41K tokens**). This guide covers
+mechanism, and this doc is large (~28,000 words, roughly **47K tokens**). This guide covers
 the three ways to load it and the exact steps for each assistant.
 
 ## Three ways to load it
@@ -21,7 +21,7 @@ Almost every tool reduces to one of these:
 For a doc this size, a **skill** is the best home: the model reads only a short description
 until your prompt looks like ServiceNow work, then loads the full standards on demand — so it
 costs almost nothing in context until it's actually needed. The same skill works across
-Claude Code, Claude.ai, Codex, Gemini CLI, Cursor, and Copilot.
+Claude Code, Claude.ai, Codex, Gemini CLI, Cursor, Copilot, Cline, Roo Code, Junie, and Open WebUI.
 
 **Easiest — install as a plugin.** In **Claude Code**:
 
@@ -30,19 +30,22 @@ Claude Code, Claude.ai, Codex, Gemini CLI, Cursor, and Copilot.
 /plugin install glidegrail@glidegrail
 ```
 
-In the **Claude desktop app**:
+In **claude.ai** (web or desktop app):
 
-1. Open **Customize → Skills**.
-2. Next to **Personal plugins**, click **+**.
-3. Click **+ Create plugin**, then **Add marketplace**.
-4. Paste `bikemeardsley/GlideGrail.md`, then click **Sync**.
-5. Click **Install**.
+1. Open **Customize → Plugins**, then click **Add → Add marketplace**.
+2. Enter `bikemeardsley/GlideGrail.md` and install the **glidegrail** plugin.
 
-Either way you get the skill with auto-updates, and the standards load automatically whenever a task is ServiceNow-related.
+The plugin is saved to your account, so it also shows up in Cowork and Claude Code. Either way
+the standards load automatically whenever a task is ServiceNow-related.
+
+Updates are **not** automatic for third-party marketplaces. In Claude Code, turn them on under
+`/plugin` → **Marketplaces → Enable auto-update**, or run `claude plugin update glidegrail@glidegrail`.
+In claude.ai, use **Check for updates** or turn on **Sync automatically** for the marketplace.
+
 **Gemini CLI — install as an extension:**
 
 ```bash
-gemini extensions install https://github.com/bikemeardsley/GlideGrail.md
+gemini extensions install https://github.com/bikemeardsley/GlideGrail.md --auto-update
 ```
 
 **Any other tool — use the skill folder directly.** The skill lives at
@@ -64,17 +67,19 @@ Each tool supports more than one of the three patterns — pick based on how gua
 need the standards to be present versus how much context you want to spend.
 
 ### Claude — claude.ai (web / desktop / mobile)
-- **Plugin (desktop app):** Customize → Skills → **+** next to "Personal plugins" → paste
-  `bikemeardsley/GlideGrail.md` → Sync → Install.
-- **Skill upload (web, paid plans):** Settings → Skills → upload the zipped `glidegrail/`
-  folder. Loads on demand in any chat.
+- **Plugin:** Customize → Plugins → **Add → Add marketplace** → enter
+  `bikemeardsley/GlideGrail.md` → install. See the update note [above](#ship-it-as-a-skill-recommended).
+- **Skill upload (all plans):** Customize → Skills → **+ → Create skill → Upload a skill** →
+  the zipped `glidegrail/` folder. Needs **Code execution and file creation** on under
+  Settings → Capabilities. Loads on demand in any chat.
 - **Project knowledge:** create a Project, add `GlideGrail.md` to its knowledge, and add
   *"For any ServiceNow code, follow GlideGrail.md"* to the Project instructions — grounds
   every chat in that Project.
 
 ### Claude Code
 - **Plugin (recommended):** `/plugin marketplace add bikemeardsley/GlideGrail.md` then
-  `/plugin install glidegrail@glidegrail`. Auto-updates; loads on demand. There's also an
+  `/plugin install glidegrail@glidegrail`. Loads on demand; enable auto-update for the
+  marketplace in `/plugin` → Marketplaces (off by default for third-party ones). There's also an
   optional `servicenow-docs` plugin in a separate marketplace — see
   [Companion plugin](#companion-plugin--live-servicenow-docs) at the end of this doc.
 - **Skill folder (manual):** copy `skills/glidegrail/` into `.claude/skills/` (shared via the
@@ -103,29 +108,37 @@ need the standards to be present versus how much context you want to spend.
   the task matches, the lightest-context option if your repo isn't ServiceNow-only.
 
 ### Microsoft 365 Copilot
-- **Custom agent (agent builder):** in Copilot chat, choose **Create agent** → add *"For all
-  ServiceNow code, follow GlideGrail.md; ask for the project's PREFIX if unknown"* to the
-  instructions → under **Knowledge**, upload
-  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) (rename to `.txt` if the upload
-  rejects `.md`), point at a copy in SharePoint/OneDrive, or add this repo's GitHub URL as a
-  website source. Retrieval is chunk-based like a ChatGPT Project — relevant sections are
-  pulled per prompt. Once it works, share the agent with your team.
+- **Custom agent (agent builder):** in Copilot chat, choose **New agent** in the left pane →
+  **Skip to configure** → add *"For all ServiceNow code, follow GlideGrail.md; ask for the
+  project's PREFIX if unknown"* to the instructions → under **Knowledge**, upload
+  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) renamed to `.txt` (`.md` isn't a
+  supported upload type), point at a copy in SharePoint/OneDrive, or add
+  `https://github.com/bikemeardsley/GlideGrail.md` as a website source (website sources allow
+  at most two path levels, so a raw file URL won't work). Retrieval is chunk-based like a
+  ChatGPT Project — relevant sections are pulled per prompt. Once it works, share the agent
+  with your team.
 - Requires an M365 Copilot license, and agent creation can be admin-restricted — if
-  **Create agent** is missing, ask your tenant admin.
+  **New agent** is missing, ask your tenant admin.
 
 ### Cursor
-- **Project rule (`.mdc`):** create `.cursor/rules/glidegrail.mdc` as an **Agent Requested**
-  rule — set `alwaysApply: false`, write a clear `description` (Cursor uses it to decide when
-  to load), and point the body at your copy of `GlideGrail.md`. A plain `.md` file in
-  `.cursor/rules/` is ignored — it needs the `.mdc` extension. Don't use `alwaysApply: true`:
-  at ~41K tokens it would blow the context budget every turn.
-- **Remote Rule (no copy in your repo):** Settings → Rules → *Remote Rule (GitHub)* → paste
-  this repo's URL. Auto-syncs when the repo updates.
+- **Plugin:** install from the
+  [cursor.directory listing](https://cursor.directory/plugins/glidegrail-servicenow-coding-standards).
+- **Skill (recommended for a manual setup):** copy `skills/glidegrail/` to
+  `.cursor/skills/glidegrail/` (or `.agents/skills/`, or `~/.cursor/skills/` for all
+  projects). Cursor also reads `.claude/skills/` and `.codex/skills/`.
+- **Project rule (`.mdc`):** create `.cursor/rules/glidegrail.mdc` as an **Apply
+  Intelligently** rule — set `alwaysApply: false`, write a clear `description` (Cursor uses it
+  to decide when to load), and point the body at your copy of `GlideGrail.md`. A plain `.md`
+  file in `.cursor/rules/` is ignored — it needs the `.mdc` extension. Don't use
+  `alwaysApply: true`: at ~47K tokens it would blow the context budget every turn.
 
 ### Cline / Roo Code
+- **Skill (recommended):** copy `skills/glidegrail/` to `.cline/skills/glidegrail/` (Cline;
+  `.claude/skills/` also works) or `.roo/skills/glidegrail/` (Roo Code; `.agents/skills/`
+  also works). Loads only when the task matches.
 - **Rules-folder pointer:** create `.clinerules/glidegrail.md` (Cline) or
   `.roo/rules/glidegrail.md` (Roo Code) in your project. Rules files are injected into
-  **every** request, so at ~41K tokens don't paste the doc itself — point instead:
+  **every** request, so at ~47K tokens don't paste the doc itself — point instead:
 
   ```markdown
   For any ServiceNow code, load and follow GlideGrail.md before writing:
@@ -138,19 +151,21 @@ need the standards to be present versus how much context you want to spend.
   fully offline — a good fit if you're pairing them with local models via Open WebUI/Ollama.
 
 ### JetBrains (AI Assistant / Junie)
-- **Junie:** drop a `.junie/guidelines.md` in the project with the same short pointer text
-  as the Cline example above — Junie reads it for every task. Point, don't paste.
-- **AI Assistant:** add the pointer as a project rule / custom instruction
-  (Settings → Tools → AI Assistant), or keep a vendored `GlideGrail.md` in the repo and
-  attach it to chats with the file-context picker when working on ServiceNow code.
+- **Junie — skill (recommended):** copy `skills/glidegrail/` to `.junie/skills/glidegrail/`
+  or `.agents/skills/glidegrail/`. Works in the Junie CLI and the IDE plugin.
+- **Junie — pointer:** put the same short pointer text as the Cline example above in
+  `.junie/AGENTS.md` or the root `AGENTS.md` (see [`templates/AGENTS.md`](./templates/AGENTS.md)).
+  `.junie/guidelines.md` still works but is the legacy location. Point, don't paste.
+- **AI Assistant:** add the pointer as a project rule (Settings → Tools → AI Assistant →
+  **Rules**, which creates `.aiassistant/rules/*.md`), or keep a vendored `GlideGrail.md` in
+  the repo and attach it to chats with the file-context picker when working on ServiceNow code.
 
 ### Gemini
-- **Gemini CLI — extension (recommended):** one command installs this repo as an extension,
-  with auto-updates:
+- **Gemini CLI — extension (recommended):** one command installs this repo as an extension:
   ```bash
-  gemini extensions install https://github.com/bikemeardsley/GlideGrail.md
+  gemini extensions install https://github.com/bikemeardsley/GlideGrail.md --auto-update
   ```
-  Gemini loads the bundled skill on demand; update later with
+  Gemini loads the bundled skill on demand. Without `--auto-update`, update by hand with
   `gemini extensions update glidegrail`. No build step — it's pure markdown.
 - **Gemini CLI — manual:** copy `skills/glidegrail/` to `.gemini/skills/glidegrail/`.
 - **Gemini app — Gem:** create a Gem, add *"Follow GlideGrail.md for all ServiceNow code"* to
@@ -175,7 +190,10 @@ Ollama models, OpenRouter, anything), with no model cooperation needed.
   so models with solid function-calling can pull specific sections mid-chat
   (`get_glidegrail_guidance("acl debugging")`). Don't rely on it alone for enforcement —
   many local models never call tools.
-- **No admin rights? Knowledge base:** Workspace → Knowledge → upload
+- **No admin rights? Skill:** install the GlideGrail skill from the community hub (Workspace →
+  Skills). The model loads the standards on demand; needs native function calling. Details in
+  [`open-webui/README.md`](./open-webui/README.md#no-admin-rights-skill).
+- **Skills not enabled either? Knowledge base:** Workspace → Knowledge → upload
   [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md), then reference it with `#` in chat or
   attach it to a custom model with an instruction to follow it.
 
@@ -187,10 +205,9 @@ Full valve reference, deployment profiles, and install options:
   standards on demand. Tell it to fetch
   `https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/llms.txt` — an
   [llms.txt](https://llmstxt.org/) index that links straight to the raw standards — and
-  follow the standards link before writing ServiceNow code. Also handy as the canonical
-  URL for Cursor Remote Rules or an Open WebUI knowledge base.
+  follow the standards link before writing ServiceNow code.
 - Drop an **`AGENTS.md`** at the repo root pointing to
-  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) — Codex, Cursor, Copilot, Zed, Jules,
+  [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) — Codex, Cursor, Copilot, Cline, Junie, Zed, Jules,
   Devin, Amp, and most other agents read it. A ready-made copy lives at
   [`templates/AGENTS.md`](./templates/AGENTS.md): copy it in, set your `PREFIX`, done.
   Otherwise the universal fallback always works: load the markdown as a system/context

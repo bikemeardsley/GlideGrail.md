@@ -1,6 +1,10 @@
 # Local Claude Code settings (not part of the distribution)
 .claude/
 
+# graphify knowledge-graph output (local, regenerated)
+graphify-out/
+.archify/
+
 # Python bytecode (from build_artifacts.py / local testing)
 __pycache__/
 *.pyc

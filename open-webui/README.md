@@ -1,6 +1,6 @@
-# GlideGrail — Open WebUI Filter & Tool
+# GlideGrail — Open WebUI Filter, Tool & Skill
 
-Two [Open WebUI](https://openwebui.com) artifacts that bring the [GlideGrail](https://github.com/bikemeardsley/GlideGrail.md) ServiceNow coding standards to any model you run:
+Two [Open WebUI](https://openwebui.com) code artifacts (plus a [skill](#no-admin-rights-skill) for non-admins) that bring the [GlideGrail](https://github.com/bikemeardsley/GlideGrail.md) ServiceNow coding standards to any model you run:
 
 | Artifact | File | Mechanism | Install if… |
 |---|---|---|---|
@@ -138,9 +138,20 @@ The rule of thumb: **one API token, or two independent ServiceNow-flavored conce
 - If a system message already exists the block is appended to it; otherwise a new system message is inserted at the top.
 - On turns where nothing ServiceNow-related fires, the payload passes through untouched.
 
+## No admin rights? Skill
+
+Installing Functions requires **admin** on the Open WebUI instance. Skills don't: any user with the **Skills Access** and **Import Skills** permissions can install one from the community hub.
+
+The skill is the repo's [`skills/glidegrail/`](../skills/glidegrail/) folder as is: a short `SKILL.md` plus the full `GlideGrail.md` beside it. Open WebUI lists the skill's name and description to the model, which loads `SKILL.md` with `view_skill` when a task touches ServiceNow and then reads or greps `GlideGrail.md` for the rule it needs. You can also type `$` in chat to invoke it, or attach it to a custom model.
+
+- **From the hub:** open the listing and click **Get**; the skill opens in the editor, then click **Save & Create**.
+- **From this repo:** in **Workspace → Skills**, use **Import folder** on `skills/glidegrail/` (or import it zipped). Admins can instead use **Import from URL** with the folder's GitHub link.
+
+On-demand loading needs native function calling with built-in tools enabled, the same requirement as the Tool. In legacy (Default) function calling mode, the model gets only `SKILL.md` and can't reach `GlideGrail.md`, so the skill does nothing useful there. Unlike the filter, nothing is guaranteed to arrive; the model has to decide to open the skill.
+
 ## No admin rights? Knowledge-base fallback
 
-Installing Functions requires **admin** on the Open WebUI instance. If you're a regular user:
+If Skills aren't enabled for you either:
 
 1. **Workspace → Knowledge → +**, upload `skills/glidegrail/GlideGrail.md`.
 2. Reference it in any chat by typing `#` and selecting it, **or** create a custom model (**Workspace → Models → +**) with the knowledge attached and a system prompt like *"For any ServiceNow code, follow the attached GlideGrail standards over your defaults."*

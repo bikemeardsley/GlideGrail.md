@@ -5,10 +5,11 @@
 <p align="center">
   <a href="https://github.com/bikemeardsley/GlideGrail.md/releases/latest"><img src="https://img.shields.io/github/v/release/bikemeardsley/GlideGrail.md?logo=github&color=181717" alt="Latest release"></a>
   <a href="https://skills.sh/bikemeardsley/GlideGrail.md/glidegrail"><img src="https://img.shields.io/badge/skills.sh-111111" alt="On skills.sh"></a>
+  <a href="https://cursor.directory/plugins/glidegrail-servicenow-coding-standards"><img src="https://img.shields.io/badge/cursor.directory-111111?logo=cursor&logoColor=white" alt="On cursor.directory"></a>
   <a href="https://smithery.ai/skills/bikemeardsley/glidegrail"><img src="https://img.shields.io/badge/Smithery-FF5601?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODggMjExIiBmaWxsPSIjZmZmIj48cGF0aCBkPSJNNDEuNzAxMSA3Ny40OEgwVjEwMC4yNjRDMCAxMTguMTcxIDE0LjUyNzUgMTMyLjY5OCAzMi40MzQyIDEzMi42OThINTUuMjE4M1Y5MC45OTcxQzU1LjIxODMgODMuNTQxOCA0OS4xNTY1IDc3LjQ4IDQxLjcwMTEgNzcuNDhaIi8%2BPHBhdGggZD0iTTY2LjA4NzkgOTAuOTk3MVYxMzIuNjk4SDEwNy43ODlDMTE1LjI0NCAxMzIuNjk4IDEyMS4zMDYgMTI2LjYzNiAxMjEuMzA2IDExOS4xODFWNzcuNDhINzkuNjA1MUM3Mi4xNDk3IDc3LjQ4IDY2LjA4NzkgODMuNTQxOCA2Ni4wODc5IDkwLjk5NzFaIi8%2BPHBhdGggZD0iTTE1NC45OTUgNzcuNDhIMTMyLjIxVjExOS4xODFDMTMyLjIxIDEyNi42MzYgMTM4LjI3MiAxMzIuNjk4IDE0NS43MjggMTMyLjY5OEgxODcuNDI5VjEwNi4xNTJDMTg3LjQyOSA4OC4yNDQ5IDE3Mi45MDEgNzcuNTE0OCAxNTQuOTk1IDc3LjUxNDhWNzcuNDhaIi8%2BPHBhdGggZD0iTTAgNDUuOTUxNFY2Ni42MTAzSDQxLjcwMTFDNDkuMTU2NSA2Ni42MTAzIDU1LjIxODMgNjAuNTQ4NSA1NS4yMTgzIDUzLjA5MzJWMEMyNS44NDk4IDAuMjA5MDI4IDAuMDM0ODM4IDE0LjY2NjggMCA0NS45NTE0WiIvPjxwYXRoIGQ9Ik02Ni4wODc5IDUzLjA5M0M2Ni4wODc5IDYwLjU0ODMgNzIuMTQ5NyA2Ni42MTAxIDc5LjYwNTEgNjYuNjEwMUgxMjEuMzA2VjExLjQ2MTVDMTAwLjkyNiA4LjM2MDkyIDkwLjMwMDMgMS43NDE2OSA2Ni4wODc5IDAuMjQzNjUyVjUzLjA1ODFWNTMuMDkzWiIvPjxwYXRoIGQ9Ik0xNDQuMDkgMTMuMDYzOUMxMzkuNzcgMTMuMDYzOSAxMzUuODM0IDEyLjkyNDYgMTMyLjIxIDEyLjY4MDdWNjYuNjFIMTU0Ljk5NUMxNzIuOTAxIDY2LjYxIDE4Ny40MjkgNTIuMDgyNSAxODcuNDI5IDM0LjE3NThWMC4xNzM4MjhDMTc3LjI5MSA4LjExNjkgMTYyLjkwMyAxMy4wNjM5IDE0NC4wOSAxMy4wNjM5WiIvPjxwYXRoIGQ9Ik0wIDE3Ni4wMDJWMjEwLjAwNEMxMC4xMzc5IDIwMi4wNjEgMjQuNTI2IDE5Ny4xMTQgNDMuMzM4NSAxOTcuMTE0QzQ3LjY1ODQgMTk3LjExNCA1MS41OTUxIDE5Ny4yNTMgNTUuMjE4MyAxOTcuNTMyVjE0My42MDNIMzIuNDM0MkMxNC41Mjc1IDE0My42MDMgMCAxNTguMTMgMCAxNzYuMDM3TDAgMTc2LjAwMloiLz48cGF0aCBkPSJNMTA3Ljc4OSAxNDMuNjAzSDY2LjA4NzlWMTk4LjcxNkM4Ni40NjgxIDIwMS44MTcgOTcuMDkzOCAyMDguNDM2IDEyMS4zMDYgMjA5LjkzNFYxNTcuMTJDMTIxLjMwNiAxNDkuNjY0IDExNS4yNDQgMTQzLjYwMyAxMDcuNzg5IDE0My42MDNaIi8%2BPHBhdGggZD0iTTEzMi4yMSAxNTcuMDg1VjIxMC4xNzhDMTYxLjU0NCAyMDkuOTY5IDE4Ny4zMjQgMTk1LjUxMSAxODcuNDI5IDE2NC4yOTZWMTQzLjU2OEgxNDUuNzI4QzEzOC4yNzIgMTQzLjU2OCAxMzIuMjEgMTQ5LjYzIDEzMi4yMSAxNTcuMDg1WiIvPjwvc3ZnPg%3D%3D" alt="On Smithery"></a>
   <a href="https://geminicli.com/extensions/?name=glidegrail"><img src="https://img.shields.io/badge/Gemini_CLI-8E75B2?logo=googlegemini&logoColor=white" alt="In the Gemini CLI extensions gallery"></a>
-  <a href="https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7"><img src=".github/badges/openwebui-filter.svg" alt="Open WebUI filter on the community hub"></a>
-  <a href="https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99"><img src=".github/badges/openwebui-tool.svg" alt="Open WebUI tool on the community hub"></a>
+  <a href="https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7"><img src="https://img.shields.io/badge/Open_WebUI-filter-111111?labelColor=ffffff&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjEzMCAxNjcgMjIzIDE2NSI%2BPGNpcmNsZSBjeD0iMjEyLjUiIGN5PSIyNDkuNSIgcj0iNjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIzMyIvPjxyZWN0IHg9IjMyMCIgeT0iMTY3IiB3aWR0aD0iMzMiIGhlaWdodD0iMTY1Ii8%2BPC9zdmc%2B" alt="Open WebUI filter on the community hub"></a>
+  <a href="https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99"><img src="https://img.shields.io/badge/Open_WebUI-tool-111111?labelColor=ffffff&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjEzMCAxNjcgMjIzIDE2NSI%2BPGNpcmNsZSBjeD0iMjEyLjUiIGN5PSIyNDkuNSIgcj0iNjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIzMyIvPjxyZWN0IHg9IjMyMCIgeT0iMTY3IiB3aWR0aD0iMzMiIGhlaWdodD0iMTY1Ii8%2BPC9zdmc%2B" alt="Open WebUI tool on the community hub"></a>
   <a href="https://github.com/ServiceNow/ServiceNowDocs"><img src="https://img.shields.io/badge/ServiceNow-docs.md-62D84E?logo=servicenow&logoColor=white" alt="ServiceNow docs.md"></a>
   <br>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-CC_BY_4.0-blue" alt="License: CC BY 4.0"></a>
@@ -20,7 +21,7 @@ Most ServiceNow best practice material is scattered across community posts, docs
 knowledge, or just not widely known, and written to be read by a human. [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md) consolidates years of experience and common rules
 into a single reference written to be consumed by a model: concrete, directive, and
 specific enough to change what your AI assistant (Claude, ChatGPT, Codex, Gemini, Copilot,
-Cursor, Cline, Roo Code, JetBrains, Microsoft 365 Copilot) actually produces.
+Cursor, Cline, Roo Code, JetBrains, Microsoft 365 Copilot, Open WebUI) actually produces.
 
 Equally useful as a human reference or a review checklist.
 
@@ -32,18 +33,16 @@ JetBrains, Gemini, Open WebUI), and which load method to use for each.
 
 The quickest installs:
 
-**Claude Code / Claude desktop app** - install as a plugin:
+**Claude Code** - install as a plugin:
 ```bash
 /plugin marketplace add bikemeardsley/GlideGrail.md
 /plugin install glidegrail@glidegrail
 ```
-**Claude desktop app** - install as a plugin:
+**claude.ai (web or desktop app)** - open **Customize → Plugins → Add → Add marketplace**, enter
+`bikemeardsley/GlideGrail.md`, and install **glidegrail**. Third-party marketplaces don't
+auto-update by default; see [USAGE.md](./USAGE.md#ship-it-as-a-skill-recommended) to turn it on.
 
-1. Open **Customize → Skills**.
-2. Next to **Personal plugins**, click **+**.
-3. Click **+ Create plugin**, then **Add marketplace**.
-4. Paste `bikemeardsley/GlideGrail.md`, then click **Sync**.
-5. Click **Install**.
+**Cursor** - install from [cursor.directory](https://cursor.directory/plugins/glidegrail-servicenow-coding-standards).
 
 **Optional companion — live ServiceNow docs, no setup:** a separate plugin,
 [`servicenow-docs`](https://github.com/bikemeardsley/claude-servicenow-docs), gives Claude
@@ -60,12 +59,12 @@ one extra config step on Claude Desktop — see
 
 **Gemini CLI** — install as an extension:
 ```bash
-gemini extensions install https://github.com/bikemeardsley/GlideGrail.md
+gemini extensions install https://github.com/bikemeardsley/GlideGrail.md --auto-update
 ```
 
 **Open WebUI** — install as a Function that auto-injects the standards for any model (local or cloud):
 one click via the community hub — [Enforcement Filter](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7) (recommended), plus the optional
-[Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. Details: [`open-webui/`](./open-webui/).
+[Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. No admin rights? Install the GlideGrail **Skill** from the hub instead. Details: [`open-webui/`](./open-webui/).
 
 **Any web-capable agent** — no install needed: tell it to fetch
 `https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/llms.txt` and follow the
@@ -73,6 +72,15 @@ linked standards.
 
 Every other tool loads the skill from [`skills/glidegrail/`](./skills/glidegrail/) (raw standards:
 [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md)) see [USAGE.md](./USAGE.md) for the steps.
+
+## How it reaches your assistant
+
+One canonical folder, [`skills/glidegrail/`](./skills/glidegrail/), feeds every channel, so every
+assistant gets the same standards:
+
+<p align="center">
+  <img src="distribution.png" alt="Diagram: the skills/glidegrail folder is packaged by the plugin manifests for the Claude plugin marketplace and Gemini CLI, indexed by skill directories (skills.sh, Smithery, cursor.directory) for IDE agents, embedded by build_artifacts.py into the Open WebUI filter and tool published on the community hub, and linked from llms.txt and AGENTS.md for any web-capable agent.">
+</p>
 
 ## What's inside
 
