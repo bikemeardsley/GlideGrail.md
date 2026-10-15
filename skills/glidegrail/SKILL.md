@@ -1,5 +1,5 @@
 ---
-name: glidegrail-servicenow-standards
+name: glidegrail
 description: >-
   ServiceNow coding standards and conventions for humans and AI agents. Use this skill
   whenever writing, reviewing, or refactoring ServiceNow code or platform artifacts:
