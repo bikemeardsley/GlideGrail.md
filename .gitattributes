@@ -3,3 +3,9 @@
 # never produce line-ending churn.
 open-webui/*.py text eol=lf
 open-webui/*.json text eol=lf
+
+# Keep the Open WebUI artifacts out of GitHub's source archives. Each embeds
+# a ~92 KB gzip+base64 copy of the doc, and the Claude plugin directory
+# rejects a repo whose tar.gz exceeds 512 KiB. The files stay in the repo,
+# so raw links and hub installs are unaffected.
+/open-webui export-ignore
