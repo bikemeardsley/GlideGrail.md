@@ -2,7 +2,7 @@
 title: GlideGrail ServiceNow Coding Standards Enforcement
 author: Michael Beardsley
 author_url: https://github.com/bikemeardsley
-version: 1.2.1
+version: 1.2.2
 license: CC-BY-4.0
 description: ENFORCEMENT (push) — automatically detects ServiceNow development topics in the conversation and injects the relevant GlideGrail coding-standard sections into the system prompt before the model answers. Works with ANY model (no function-calling needed); silent on non-ServiceNow chats. Install this one for guaranteed standards; the separate "GlideGrail ServiceNow Coding Standards Lookup" TOOL is an optional companion that lets capable models pull additional sections on demand.
 required_open_webui_version: 0.6.0
@@ -75,20 +75,17 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import functools
 import gzip
 import inspect
 import os
 import re
 import threading
 import time
-from collections import OrderedDict
+import urllib.request
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, Field
-
-# NOTE: `requests` is intentionally NOT imported at module level.
-# It is imported lazily inside Filter._fetch_url() so that the filter loads
-# even in environments where network fetching is never used or unavailable.
 
 
 # ---------------------------------------------------------------------------
@@ -917,25 +914,13 @@ def _decode_embedded_document() -> str:
         return ""
 
 
-_EMBEDDED_LOCK = threading.Lock()
-_EMBEDDED_CACHE: Optional[Tuple[str, "OrderedDict[str, Tuple[str, str]]"]] = None
-
-
-def _embedded_document() -> Tuple[str, "OrderedDict[str, Tuple[str, str]]"]:
-    """Lazily decode + parse the embedded copy ONCE per process. The blob is
-    immutable, so this is memoized at module level (shared by all instances)
-    under its own lock — never under an instance lock, and never re-attempted
-    per message. Returns ("", empty dict) when the blob is missing/corrupt."""
-    global _EMBEDDED_CACHE
-    if _EMBEDDED_CACHE is None:
-        with _EMBEDDED_LOCK:
-            if _EMBEDDED_CACHE is None:
-                text = _decode_embedded_document()
-                sections = (
-                    Filter._parse_sections(text) if text else OrderedDict()
-                )
-                _EMBEDDED_CACHE = (text, sections)
-    return _EMBEDDED_CACHE
+@functools.lru_cache(maxsize=None)
+def _embedded_document() -> Tuple[str, Dict[str, Tuple[str, str]]]:
+    """Decode + parse the embedded copy ONCE per process (the blob is
+    immutable, so a module-level memo shared by all instances). Returns
+    ("", empty dict) when the blob is missing/corrupt."""
+    text = _decode_embedded_document()
+    return text, (Filter._parse_sections(text) if text else {})
 
 
 # ---------------------------------------------------------------------------
@@ -2552,7 +2537,7 @@ class Filter:
 
         self._lock = threading.Lock()
         # norm_title -> (original_title, full_section_text) in DOCUMENT order
-        self._sections: "OrderedDict[str, Tuple[str, str]]" = OrderedDict()
+        self._sections: Dict[str, Tuple[str, str]] = {}
         # Raw document text of the current parse (sentinel_inject="full"
         # injects it verbatim).
         self._raw_text: str = ""
@@ -2561,12 +2546,9 @@ class Filter:
         self._last_failure_at: float = 0.0  # negative cache for URL fetches
         # Current retry delay; doubles per consecutive failure (capped).
         self._backoff_s: float = float(FETCH_RETRY_BACKOFF_S)
-        # (path, mtime) of the file parse currently cached; used to refuse
-        # swapping in a parse of an OLDER file version after a read race.
-        self._file_state: Tuple[str, float] = ("", -1.0)
         # (path, mtime) of a file version known NOT to provide the document
-        # (zero sections, or refused as older than the cached parse) —
-        # memoized so it is skipped without re-reading on every message.
+        # (zero sections) — memoized so it is skipped without re-reading on
+        # every message.
         self._bad_file_state: Tuple[str, float] = ("", -1.0)
 
         # Compile keyword regexes once, per tier. KEYWORD_MAP keys are
@@ -2579,10 +2561,6 @@ class Filter:
                 "generic": [_compile_keyword(k) for k in tiers.get("generic", [])],
             }
             for title, tiers in KEYWORD_MAP.items()
-        }
-        # Keep a normalized-title -> map-title lookup for debug messages.
-        self._map_titles: Dict[str, str] = {
-            _normalize_title(t): t for t in KEYWORD_MAP
         }
         self._generic_patterns: List["re.Pattern[str]"] = [
             _compile_keyword(k) for k in GENERIC_SN_SIGNALS
@@ -2638,19 +2616,14 @@ class Filter:
     # ------------------------------------------------------------------
 
     def _fetch_url(self, url: str) -> str:
-        """Fetch the document over HTTP. `requests` is imported lazily here
-        (and only here) so the module never requires it at import time."""
-        import requests  # lazy import by design — do not move to module top
-
-        response = requests.get(
-            url,
-            timeout=10,
-            headers={"User-Agent": "glidegrail-openwebui-filter/1.2.0"},
+        """Fetch the document over HTTP (stdlib; raises on HTTP errors)."""
+        request = urllib.request.Request(
+            url, headers={"User-Agent": "glidegrail-openwebui-filter"}
         )
-        response.raise_for_status()
-        return response.text
+        with urllib.request.urlopen(request, timeout=10) as response:
+            return response.read().decode("utf-8", errors="replace")
 
-    def _ensure_document(self) -> "OrderedDict[str, Tuple[str, str]]":
+    def _ensure_document(self) -> Dict[str, Tuple[str, str]]:
         """Return parsed sections — NEVER empty while the embedded copy
         decodes, and never raises.
 
@@ -2682,7 +2655,7 @@ class Filter:
                 return self._sections
         return _embedded_document()[1]
 
-    def _load_live(self) -> Optional["OrderedDict[str, Tuple[str, str]]"]:
+    def _load_live(self) -> Optional[Dict[str, Tuple[str, str]]]:
         """Try the LIVE sources (file, then URL). Returns None when neither
         can provide a non-empty parse right now — _ensure_document applies
         the embedded floor at that single chokepoint, so any future source
@@ -2699,9 +2672,7 @@ class Filter:
             return self._load_url(url)
         return None
 
-    def _load_file(
-        self, path: str
-    ) -> Optional["OrderedDict[str, Tuple[str, str]]"]:
+    def _load_file(self, path: str) -> Optional[Dict[str, Tuple[str, str]]]:
         try:
             mtime = os.path.getmtime(path)
             sig = f"file:{path}:{mtime}"
@@ -2723,27 +2694,11 @@ class Filter:
                         f"source_path file has no sections, ignoring: {path}"
                     )
                     return None
-                cached_path, cached_mtime = self._file_state
-                # Swap only if (a) still stale and (b) not OLDER than the
-                # parse already cached for this same file — a slow reader
-                # racing a fast one must never clobber a newer parse.
-                if self._source_sig != sig and not (
-                    cached_path == path and mtime < cached_mtime
-                ):
-                    self._sections = parsed
-                    self._raw_text = text
-                    self._source_sig = sig
-                    self._file_state = (path, mtime)
-                    self._bad_file_state = ("", -1.0)
-                    self._log(
-                        f"loaded {len(parsed)} sections from file {path}"
-                    )
-                elif self._source_sig != sig:
-                    # Refused as older than the cached parse (read race or
-                    # timestamp-preserving restore): memoize so it is not
-                    # re-read every message; a touch/edit self-heals.
-                    self._bad_file_state = (path, mtime)
-                return self._sections if self._sections else None
+                self._sections = parsed
+                self._raw_text = text
+                self._source_sig = sig
+                self._log(f"loaded {len(parsed)} sections from file {path}")
+                return parsed
         except OSError as exc:
             self._log(f"file read failed ({path}): {exc}")
             return None
@@ -2758,9 +2713,7 @@ class Filter:
                 self._backoff_s * 2, FETCH_RETRY_BACKOFF_MAX_S
             )
 
-    def _load_url(
-        self, url: str
-    ) -> Optional["OrderedDict[str, Tuple[str, str]]"]:
+    def _load_url(self, url: str) -> Optional[Dict[str, Tuple[str, str]]]:
         ttl_seconds = max(int(self.valves.cache_ttl_minutes), 1) * 60
         url_sig = f"url:{url}"
         now = time.time()
@@ -2795,26 +2748,17 @@ class Filter:
             return None
 
         with self._lock:
-            fetched_at = time.time()
-            still_stale = not (
-                self._source_sig == url_sig
-                and (fetched_at - self._url_fetched_at) < ttl_seconds
-            )
-            if still_stale:
-                self._sections = parsed
-                self._raw_text = text
-                self._source_sig = url_sig
-                self._url_fetched_at = fetched_at
-                # Forget the file fingerprint: if the file later reappears
-                # (any mtime), it must be allowed to take over again.
-                self._file_state = ("", -1.0)
-                self._log(f"loaded {len(parsed)} sections from url {url}")
+            self._sections = parsed
+            self._raw_text = text
+            self._source_sig = url_sig
+            self._url_fetched_at = time.time()
             self._last_failure_at = 0.0
             self._backoff_s = float(FETCH_RETRY_BACKOFF_S)
-            return self._sections if self._sections else None
+            self._log(f"loaded {len(parsed)} sections from url {url}")
+            return parsed
 
     @staticmethod
-    def _parse_sections(text: str) -> "OrderedDict[str, Tuple[str, str]]":
+    def _parse_sections(text: str) -> Dict[str, Tuple[str, str]]:
         """Split the document into ordered h2 sections.
 
         A section starts at a line beginning with "## " and runs until the
@@ -2824,7 +2768,7 @@ class Filter:
         "Table of Contents" section is skipped. Keys are normalized titles;
         values are (original_title, full_text_including_heading).
         """
-        sections: "OrderedDict[str, Tuple[str, str]]" = OrderedDict()
+        sections: Dict[str, Tuple[str, str]] = {}
         current_title: Optional[str] = None
         buffer: List[str] = []
         in_fence = False
@@ -2965,7 +2909,7 @@ class Filter:
     def _keyword_matches(
         self,
         prompt_text: str,
-        sections: "OrderedDict[str, Tuple[str, str]]",
+        sections: Dict[str, Tuple[str, str]],
         looks_sn: bool,
     ) -> List[str]:
         """Return normalized titles of sections whose keywords hit.
@@ -3073,7 +3017,7 @@ class Filter:
     def _search_sections(
         self,
         prompt_text: str,
-        sections: "OrderedDict[str, Tuple[str, str]]",
+        sections: Dict[str, Tuple[str, str]],
     ) -> List[str]:
         """Token-overlap fallback: score each section by occurrences of
         prompt tokens (title hits weighted 5x); return top_k >= min score."""
@@ -3112,7 +3056,7 @@ class Filter:
         return picked
 
     def _always_include_titles(
-        self, sections: "OrderedDict[str, Tuple[str, str]]"
+        self, sections: Dict[str, Tuple[str, str]]
     ) -> List[str]:
         titles: List[str] = []
         for raw in (self.valves.always_include or "").split(","):
@@ -3132,7 +3076,7 @@ class Filter:
 
     def _build_injection(
         self,
-        sections: "OrderedDict[str, Tuple[str, str]]",
+        sections: Dict[str, Tuple[str, str]],
         always_norm: List[str],
         keyword_norm: List[str],
         search_norm: List[str],
@@ -3151,7 +3095,7 @@ class Filter:
         doc_order = {norm: i for i, norm in enumerate(sections.keys())}
 
         # priority: 0 = always_include (keep longest), 1 = keyword, 2 = search
-        chosen: "OrderedDict[str, int]" = OrderedDict()
+        chosen: Dict[str, int] = {}
         for norm in sorted(always_norm, key=lambda n: doc_order[n]):
             chosen[norm] = 0
         for norm in sorted(keyword_norm, key=lambda n: doc_order[n]):
@@ -3211,28 +3155,49 @@ class Filter:
             cleaned = cleaned[:orphan]
         return cleaned
 
-    @classmethod
-    def _strip_previous_block(cls, content: Any) -> Any:
-        """Remove any previously injected marker block (multi-turn: we
-        replace our block, never stack a second copy)."""
+    @staticmethod
+    def _map_content_text(content: Any, fn: Callable[[str], str]) -> Any:
+        """Apply fn to str content, or to each text part of Open WebUI's
+        list-of-parts content. A text part that fn changes into blank text
+        is dropped; anything else passes through untouched."""
         if isinstance(content, str):
-            return cls._strip_marker_text(content).rstrip()
+            return fn(content)
         if isinstance(content, list):
-            cleaned: List[Any] = []
+            out: List[Any] = []
             for part in content:
                 if isinstance(part, dict) and part.get("type") == "text":
-                    new_text = cls._strip_marker_text(
-                        str(part.get("text") or "")
-                    ).rstrip()
-                    if new_text:
-                        part = dict(part)
-                        part["text"] = new_text
-                        cleaned.append(part)
-                    # drop text parts that were only our block
-                else:
-                    cleaned.append(part)
-            return cleaned
+                    text = str(part.get("text") or "")
+                    new_text = fn(text)
+                    if new_text != text:
+                        if not new_text.strip():
+                            continue
+                        part = {**part, "text": new_text}
+                out.append(part)
+            return out
         return content
+
+    def _rewrite_messages(
+        self,
+        messages: List[Any],
+        fn: Callable[[str], str],
+        role: Optional[str] = None,
+    ) -> None:
+        """Apply fn to the text of every message (or only those with the
+        given role), in place. A message that fn alone emptied is removed
+        (some upstream providers reject empty content with a 400); messages
+        that were already empty are left alone."""
+        kept: List[Any] = []
+        for m in messages:
+            if isinstance(m, dict) and (role is None or m.get("role") == role):
+                before = m.get("content")
+                m["content"] = self._map_content_text(before, fn)
+                if not self._is_empty_content(
+                    before
+                ) and self._is_empty_content(m["content"]):
+                    continue
+            kept.append(m)
+        if len(kept) != len(messages):
+            messages[:] = kept
 
     @staticmethod
     def _is_empty_content(content: Any) -> bool:
@@ -3269,71 +3234,27 @@ class Filter:
         """Detect and strip the sentinel token from EVERY message — any
         role (system, user, assistant), both str and list-of-parts
         content. The scan is cheap by design: a plain substring test per
-        message text before any other work. A message (or text part) that
-        becomes empty solely from stripping is removed, same hygiene as
-        marker stripping. Returns True when the token was found anywhere.
-        """
-        found = False
-        kept: List[Any] = []
-        for m in messages:
-            if not isinstance(m, dict):
-                kept.append(m)
-                continue
-            content = m.get("content")
-            if isinstance(content, str):
-                if token in content:  # cheap substring gate
-                    found = True
-                    was_empty = not content.strip()
-                    new_text = self._strip_sentinel_text(content, token)
-                    m["content"] = new_text
-                    if not was_empty and not new_text.strip():
-                        continue  # emptied solely by the strip: drop it
-            elif isinstance(content, list):
-                has_token = any(
-                    isinstance(p, dict)
-                    and p.get("type") == "text"
-                    and token in str(p.get("text") or "")
-                    for p in content
-                )
-                if has_token:
-                    found = True
-                    was_empty = self._is_empty_content(content)
-                    new_parts: List[Any] = []
-                    for p in content:
-                        if isinstance(p, dict) and p.get("type") == "text":
-                            t = str(p.get("text") or "")
-                            if token in t:
-                                t = self._strip_sentinel_text(t, token)
-                                if not t.strip():
-                                    continue  # part was only the token
-                                p = dict(p)
-                                p["text"] = t
-                        new_parts.append(p)
-                    m["content"] = new_parts
-                    if not was_empty and self._is_empty_content(new_parts):
-                        continue  # emptied solely by the strip: drop it
-            kept.append(m)
-        if found and len(kept) != len(messages):
-            messages[:] = kept
-        return found
+        message text before any rewrite. A message (or text part) emptied
+        solely by the strip is removed. Returns True when the token was
+        found anywhere."""
+        if not any(
+            isinstance(m, dict) and token in self._extract_text(m.get("content"))
+            for m in messages
+        ):
+            return False
+        self._rewrite_messages(
+            messages, lambda t: self._strip_sentinel_text(t, token)
+        )
+        return True
 
     def _inject_block(self, messages: List[dict], block: str) -> None:
-        # Strip any earlier injection from every system message. If a system
-        # message becomes empty BECAUSE of the strip (it contained only our
-        # marker block), remove the message entirely — some upstream
-        # providers reject empty content parts with a 400. Messages that
-        # were already empty before the strip are left untouched.
-        kept: List[dict] = []
-        for m in messages:
-            if isinstance(m, dict) and m.get("role") == "system":
-                before = m.get("content")
-                was_empty = self._is_empty_content(before)
-                m["content"] = self._strip_previous_block(before)
-                if not was_empty and self._is_empty_content(m["content"]):
-                    continue  # emptied by our strip -> drop it
-            kept.append(m)
-        if len(kept) != len(messages):
-            messages[:] = kept
+        # Strip any earlier injection from every system message (multi-turn:
+        # replace our block, never stack a second copy).
+        self._rewrite_messages(
+            messages,
+            lambda t: self._strip_marker_text(t).rstrip(),
+            role="system",
+        )
 
         system_indices = [
             i
@@ -3409,7 +3330,6 @@ class Filter:
             if token:
                 sentinel_fired = self._strip_sentinel(messages, token)
                 if sentinel_fired:
-                    body["messages"] = messages
                     self._log("sentinel token detected and stripped")
 
             prompt_text = self._recent_user_text(messages)
@@ -3469,7 +3389,6 @@ class Filter:
                         text for _title, text in sections.values()
                     )
                 self._inject_block(messages, self._render_block([doc_text]))
-                body["messages"] = messages
                 self._log("sentinel trigger: injected full document")
                 if self.valves.show_status:
                     await self._emit_status(
@@ -3491,8 +3410,8 @@ class Filter:
             if not block or not injected_titles:
                 return body
 
+            # messages is body["messages"] itself; every edit above is in place.
             self._inject_block(messages, block)
-            body["messages"] = messages
 
             if sentinel_fired:
                 self._log(

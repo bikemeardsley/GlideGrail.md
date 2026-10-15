@@ -2,7 +2,7 @@
 title: GlideGrail ServiceNow Coding Standards Lookup
 author: Michael Beardsley
 author_url: https://github.com/bikemeardsley
-version: 1.1.1
+version: 1.1.2
 license: CC-BY-4.0
 description: LOOKUP (pull) — lets the MODEL fetch specific GlideGrail ServiceNow coding-standard sections on demand via function-calling (get_glidegrail_guidance / list_glidegrail_sections). Requires a model with solid function-calling; many local models never call tools, so do NOT rely on this alone for enforcement — install the "GlideGrail ServiceNow Coding Standards Enforcement" FILTER for guaranteed automatic injection, and add this tool as a companion for capable models.
 required_open_webui_version: 0.6.0
@@ -28,13 +28,14 @@ required_open_webui_version: 0.6.0
 
 import asyncio
 import base64
+import functools
 import gzip
 import os
 import re
 import threading
 import time
-from collections import OrderedDict
-from typing import List, Optional, Tuple
+import urllib.request
+from typing import Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -869,9 +870,9 @@ _TOKEN_RE = re.compile(r"[a-z0-9_$.]{3,}")
 _STOPWORDS = frozenset(
     """
     the and for with that this from are was were has have had not you your
-    can could should would will shall may might must про how what when where
+    can could should would will shall may might must how what when where
     which who whom why all any each our their its his her out use used using
-    into onto over under between про does did doing done get got make made
+    into onto over under between does did doing done get got make made
     """.split()
 )
 
@@ -884,10 +885,10 @@ def _normalize_title(title: str) -> str:
     return t.casefold()
 
 
-def _parse_sections(text: str) -> "OrderedDict[str, Tuple[str, str]]":
+def _parse_sections(text: str) -> Dict[str, Tuple[str, str]]:
     """Split into ordered h2 sections; fence-aware; skips Table of Contents.
     Keys are normalized titles; values are (original_title, full_text)."""
-    sections: "OrderedDict[str, Tuple[str, str]]" = OrderedDict()
+    sections: Dict[str, Tuple[str, str]] = {}
     current_title: Optional[str] = None
     buffer: List[str] = []
     in_fence = False
@@ -918,22 +919,13 @@ def _parse_sections(text: str) -> "OrderedDict[str, Tuple[str, str]]":
     return sections
 
 
-_EMBEDDED_LOCK = threading.Lock()
-_EMBEDDED_CACHE = None  # Optional[Tuple[str, OrderedDict]] — process-wide memo
-
-
-def _embedded_document():
-    """Lazily decode + parse the embedded copy ONCE per process (module-level
-    memo under its own lock — the blob is immutable, so instance state is the
-    wrong home). Returns ("", empty dict) when the blob is missing/corrupt."""
-    global _EMBEDDED_CACHE
-    if _EMBEDDED_CACHE is None:
-        with _EMBEDDED_LOCK:
-            if _EMBEDDED_CACHE is None:
-                text = _decode_embedded_document()
-                sections = _parse_sections(text) if text else OrderedDict()
-                _EMBEDDED_CACHE = (text, sections)
-    return _EMBEDDED_CACHE
+@functools.lru_cache(maxsize=None)
+def _embedded_document() -> Tuple[str, Dict[str, Tuple[str, str]]]:
+    """Decode + parse the embedded copy ONCE per process (the blob is
+    immutable, so a module-level memo). Returns ("", empty dict) when the
+    blob is missing/corrupt."""
+    text = _decode_embedded_document()
+    return text, (_parse_sections(text) if text else {})
 
 
 class Tools:
@@ -978,12 +970,11 @@ class Tools:
     def __init__(self):
         self.valves = self.Valves()
         self._lock = threading.Lock()
-        self._sections: "OrderedDict[str, Tuple[str, str]]" = OrderedDict()
+        self._sections: Dict[str, Tuple[str, str]] = {}
         self._source_sig = ""
-        self._file_state: Tuple[str, float] = ("", -1.0)
         # (path, mtime) of a file version known NOT to provide the document
-        # (zero sections, or refused as older than the cached parse) —
-        # memoized so it is skipped without re-reading on every message.
+        # (zero sections) — memoized so it is skipped without re-reading on
+        # every message.
         self._bad_file_state: Tuple[str, float] = ("", -1.0)
         self._url_fetched_at = 0.0
         self._last_failure_at = 0.0
@@ -999,17 +990,14 @@ class Tools:
     # -- document loading (mirrors the filter; blocking, call via to_thread) --
 
     def _fetch_url(self, url: str) -> str:
-        import requests  # lazy import by design
-
-        response = requests.get(
-            url,
-            timeout=10,
-            headers={"User-Agent": "glidegrail-openwebui-tool/1.1.0"},
+        """Fetch the document over HTTP (stdlib; raises on HTTP errors)."""
+        request = urllib.request.Request(
+            url, headers={"User-Agent": "glidegrail-openwebui-tool"}
         )
-        response.raise_for_status()
-        return response.text
+        with urllib.request.urlopen(request, timeout=10) as response:
+            return response.read().decode("utf-8", errors="replace")
 
-    def _ensure_document(self) -> "OrderedDict[str, Tuple[str, str]]":
+    def _ensure_document(self) -> Dict[str, Tuple[str, str]]:
         """Return parsed sections — NEVER empty while the embedded copy
         decodes, and never raises. Resolution: source_path (when present
         AND actually containing the document) > source_url (TTL-cached;
@@ -1033,7 +1021,7 @@ class Tools:
                 return self._sections
         return _embedded_document()[1]
 
-    def _load_live(self) -> Optional["OrderedDict[str, Tuple[str, str]]"]:
+    def _load_live(self) -> Optional[Dict[str, Tuple[str, str]]]:
         """Try the LIVE sources (file, then URL). Returns None when neither
         provides a non-empty parse right now — _ensure_document applies the
         embedded floor at that single chokepoint."""
@@ -1049,9 +1037,7 @@ class Tools:
             return self._load_url(url)
         return None
 
-    def _load_file(
-        self, path: str
-    ) -> Optional["OrderedDict[str, Tuple[str, str]]"]:
+    def _load_file(self, path: str) -> Optional[Dict[str, Tuple[str, str]]]:
         try:
             mtime = os.path.getmtime(path)
             sig = f"file:{path}:{mtime}"
@@ -1071,23 +1057,10 @@ class Tools:
                         f"source_path file has no sections, ignoring: {path}"
                     )
                     return None
-                cached_path, cached_mtime = self._file_state
-                # Never let a racing OLDER read clobber a newer parse.
-                if self._source_sig != sig and not (
-                    cached_path == path and mtime < cached_mtime
-                ):
-                    self._sections = parsed
-                    self._source_sig = sig
-                    self._file_state = (path, mtime)
-                    self._bad_file_state = ("", -1.0)
-                    self._log(
-                        f"loaded {len(parsed)} sections from file {path}"
-                    )
-                elif self._source_sig != sig:
-                    # Refused as older than the cached parse: memoize so it
-                    # is not re-read every message; a touch/edit self-heals.
-                    self._bad_file_state = (path, mtime)
-                return self._sections if self._sections else None
+                self._sections = parsed
+                self._source_sig = sig
+                self._log(f"loaded {len(parsed)} sections from file {path}")
+                return parsed
         except OSError as exc:
             self._log(f"file read failed ({path}): {exc}")
             return None
@@ -1101,9 +1074,7 @@ class Tools:
                 self._backoff_s * 2, FETCH_RETRY_BACKOFF_MAX_S
             )
 
-    def _load_url(
-        self, url: str
-    ) -> Optional["OrderedDict[str, Tuple[str, str]]"]:
+    def _load_url(self, url: str) -> Optional[Dict[str, Tuple[str, str]]]:
         ttl_seconds = max(int(self.valves.cache_ttl_minutes), 1) * 60
         url_sig = f"url:{url}"
         now = time.time()
@@ -1134,20 +1105,13 @@ class Tools:
             return None
 
         with self._lock:
-            fetched_at = time.time()
-            if not (
-                self._source_sig == url_sig
-                and (fetched_at - self._url_fetched_at) < ttl_seconds
-            ):
-                self._sections = parsed
-                self._source_sig = url_sig
-                self._url_fetched_at = fetched_at
-                # Let a reappearing file take over again (any mtime).
-                self._file_state = ("", -1.0)
-                self._log(f"loaded {len(parsed)} sections from url {url}")
+            self._sections = parsed
+            self._source_sig = url_sig
+            self._url_fetched_at = time.time()
             self._last_failure_at = 0.0
             self._backoff_s = float(FETCH_RETRY_BACKOFF_S)
-            return self._sections if self._sections else None
+            self._log(f"loaded {len(parsed)} sections from url {url}")
+            return parsed
 
     # -- the tools ----------------------------------------------------------
 
