@@ -10,6 +10,7 @@
   <a href="https://geminicli.com/extensions/?name=glidegrail"><img src="https://img.shields.io/badge/Gemini_CLI-8E75B2?logo=googlegemini&logoColor=white" alt="In the Gemini CLI extensions gallery"></a>
   <a href="https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7"><img src="https://img.shields.io/badge/Open_WebUI-filter-111111?labelColor=ffffff&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjEzMCAxNjcgMjIzIDE2NSI%2BPGNpcmNsZSBjeD0iMjEyLjUiIGN5PSIyNDkuNSIgcj0iNjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIzMyIvPjxyZWN0IHg9IjMyMCIgeT0iMTY3IiB3aWR0aD0iMzMiIGhlaWdodD0iMTY1Ii8%2BPC9zdmc%2B" alt="Open WebUI filter on the community hub"></a>
   <a href="https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99"><img src="https://img.shields.io/badge/Open_WebUI-tool-111111?labelColor=ffffff&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjEzMCAxNjcgMjIzIDE2NSI%2BPGNpcmNsZSBjeD0iMjEyLjUiIGN5PSIyNDkuNSIgcj0iNjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIzMyIvPjxyZWN0IHg9IjMyMCIgeT0iMTY3IiB3aWR0aD0iMzMiIGhlaWdodD0iMTY1Ii8%2BPC9zdmc%2B" alt="Open WebUI tool on the community hub"></a>
+  <a href="https://openwebui.com/posts/glidegrail_d3af0156"><img src="https://img.shields.io/badge/Open_WebUI-skill-111111?labelColor=ffffff&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjEzMCAxNjcgMjIzIDE2NSI%2BPGNpcmNsZSBjeD0iMjEyLjUiIGN5PSIyNDkuNSIgcj0iNjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIzMyIvPjxyZWN0IHg9IjMyMCIgeT0iMTY3IiB3aWR0aD0iMzMiIGhlaWdodD0iMTY1Ii8%2BPC9zdmc%2B" alt="Open WebUI skill on the community hub"></a>
   <a href="https://github.com/ServiceNow/ServiceNowDocs"><img src="https://img.shields.io/badge/ServiceNow-docs.md-62D84E?logo=servicenow&logoColor=white" alt="ServiceNow docs.md"></a>
   <br>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-CC_BY_4.0-blue" alt="License: CC BY 4.0"></a>
@@ -64,7 +65,7 @@ gemini extensions install https://github.com/bikemeardsley/GlideGrail.md --auto-
 
 **Open WebUI** — install as a Function that auto-injects the standards for any model (local or cloud):
 one click via the community hub — [Enforcement Filter](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7) (recommended), plus the optional
-[Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. No admin rights? Install the GlideGrail **Skill** from the hub instead. Details: [`open-webui/`](./open-webui/).
+[Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. No admin rights? Install the [GlideGrail Skill](https://openwebui.com/posts/glidegrail_d3af0156) from the hub instead. Details: [`open-webui/`](./open-webui/).
 
 **Any web-capable agent** — no install needed: tell it to fetch
 `https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/llms.txt` and follow the

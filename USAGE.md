@@ -190,8 +190,8 @@ Ollama models, OpenRouter, anything), with no model cooperation needed.
   so models with solid function-calling can pull specific sections mid-chat
   (`get_glidegrail_guidance("acl debugging")`). Don't rely on it alone for enforcement —
   many local models never call tools.
-- **No admin rights? Skill:** install the GlideGrail skill from the community hub (Workspace →
-  Skills). The model loads the standards on demand; needs native function calling. Details in
+- **No admin rights? Skill:** install the
+  [GlideGrail skill](https://openwebui.com/posts/glidegrail_d3af0156) from the community hub. The model loads the standards on demand; needs native function calling. Details in
   [`open-webui/README.md`](./open-webui/README.md#no-admin-rights-skill).
 - **Skills not enabled either? Knowledge base:** Workspace → Knowledge → upload
   [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md), then reference it with `#` in chat or

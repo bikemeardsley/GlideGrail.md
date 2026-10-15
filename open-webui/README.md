@@ -144,7 +144,7 @@ Installing Functions requires **admin** on the Open WebUI instance. Skills don't
 
 The skill is the repo's [`skills/glidegrail/`](../skills/glidegrail/) folder as is: a short `SKILL.md` plus the full `GlideGrail.md` beside it. Open WebUI lists the skill's name and description to the model, which loads `SKILL.md` with `view_skill` when a task touches ServiceNow and then reads or greps `GlideGrail.md` for the rule it needs. You can also type `$` in chat to invoke it, or attach it to a custom model.
 
-- **From the hub:** open the listing and click **Get**; the skill opens in the editor, then click **Save & Create**.
+- **From the hub:** open [GlideGrail](https://openwebui.com/posts/glidegrail_d3af0156) and click **Get**; the skill opens in the editor, then click **Save & Create**.
 - **From this repo:** in **Workspace → Skills**, use **Import folder** on `skills/glidegrail/` (or import it zipped). Admins can instead use **Import from URL** with the folder's GitHub link.
 
 On-demand loading needs native function calling with built-in tools enabled, the same requirement as the Tool. In legacy (Default) function calling mode, the model gets only `SKILL.md` and can't reach `GlideGrail.md`, so the skill does nothing useful there. Unlike the filter, nothing is guaranteed to arrive; the model has to decide to open the skill.
