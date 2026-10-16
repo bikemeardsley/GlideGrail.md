@@ -8,6 +8,11 @@ graphify-out/
 # Codex plugin upload (built from .claude-plugin/plugin.json + skills/)
 glidegrail-codex.zip
 
-# Python bytecode (from build_artifacts.py / local testing)
+# Open WebUI filter/tool source: its own private repo (GlideGrail-openwebui).
+# Users install from the Open WebUI community hub. Kept out of this repo so the
+# Claude plugin directory's 512 KiB archive limit is met.
+open-webui/
+
+# Python bytecode (from local testing)
 __pycache__/
 *.pyc

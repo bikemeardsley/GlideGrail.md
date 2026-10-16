@@ -186,7 +186,7 @@ Ollama models, OpenRouter, anything), with no model cooperation needed.
 
 - **Filter — automatic enforcement (recommended; requires admin):** install
   [GlideGrail ServiceNow Coding Standards Enforcement](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7)
-  from the community hub (or import/paste from [`open-webui/`](./open-webui/)), **Enable** it,
+  from the community hub, **Enable** it,
   toggle **Global**. It detects ServiceNow topics and injects only the relevant standards
   sections; non-ServiceNow chats are untouched. On a ServiceNow-dedicated instance or model,
   set the `assume_servicenow_context` valve to `true`; for small local models lower
@@ -197,14 +197,10 @@ Ollama models, OpenRouter, anything), with no model cooperation needed.
   (`get_glidegrail_guidance("acl debugging")`). Don't rely on it alone for enforcement —
   many local models never call tools.
 - **No admin rights? Skill:** install the
-  [GlideGrail skill](https://openwebui.com/posts/glidegrail_d3af0156) from the community hub. The model loads the standards on demand; needs native function calling. Details in
-  [`open-webui/README.md`](./open-webui/README.md#no-admin-rights-skill).
+  [GlideGrail skill](https://openwebui.com/posts/glidegrail_d3af0156) from the community hub. The model loads the standards on demand; needs native function calling.
 - **Skills not enabled either? Knowledge base:** Workspace → Knowledge → upload
   [`GlideGrail.md`](./skills/glidegrail/GlideGrail.md), then reference it with `#` in chat or
   attach it to a custom model with an instruction to follow it.
-
-Full valve reference, deployment profiles, and install options:
-[`open-webui/README.md`](./open-webui/README.md).
 
 ### Any other assistant
 - **Fetch by URL (`llms.txt`) — no install:** any agent with web access can pull the

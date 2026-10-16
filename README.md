@@ -71,7 +71,7 @@ gemini extensions install https://github.com/bikemeardsley/GlideGrail.md --auto-
 
 **Open WebUI** — install as a Function that auto-injects the standards for any model (local or cloud):
 one click via the community hub — [Enforcement Filter](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7) (recommended), plus the optional
-[Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. No admin rights? Install the [GlideGrail Skill](https://openwebui.com/posts/glidegrail_d3af0156) from the hub instead. Details: [`open-webui/`](./open-webui/).
+[Lookup Tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99) — then enable it and toggle **Global**. No admin rights? Install the [GlideGrail Skill](https://openwebui.com/posts/glidegrail_d3af0156) from the hub instead. Details: [USAGE.md](./USAGE.md#open-webui).
 
 **Any web-capable agent** — no install needed: tell it to fetch
 `https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/llms.txt` and follow the
@@ -86,7 +86,7 @@ One canonical folder, [`skills/glidegrail/`](./skills/glidegrail/), feeds every 
 assistant gets the same standards:
 
 <p align="center">
-  <img src="distribution.png" alt="Diagram: the skills/glidegrail folder is packaged by the plugin manifests for the Claude plugin marketplace and Gemini CLI, indexed by skill directories (skills.sh, Smithery, cursor.directory) for IDE agents, embedded by build_artifacts.py into the Open WebUI filter and tool published on the community hub, and linked from llms.txt and AGENTS.md for any web-capable agent.">
+  <img src="distribution.png" alt="Diagram: the skills/glidegrail folder is packaged by the plugin manifests for the Claude plugin marketplace and Gemini CLI, indexed by skill directories (skills.sh, Smithery, cursor.directory) for IDE agents, embedded into the Open WebUI filter and tool published on the community hub, and linked from llms.txt and AGENTS.md for any web-capable agent.">
 </p>
 
 ## What's inside

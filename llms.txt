@@ -16,4 +16,4 @@ GlideGrail.md is a single markdown reference (~28,000 words / ~47K tokens). If y
 ## Optional
 
 - [README.md](https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/README.md): project overview, quick-start installs, and section-by-section contents table
-- [Open WebUI integration](https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/open-webui/README.md): enforcement filter, lookup tool, and skill for Open WebUI deployments
+- [Open WebUI enforcement filter](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_enforcement_00c849c7), [lookup tool](https://openwebui.com/posts/glidegrail_servicenow_coding_standards_lookup_871d3d99), and [skill](https://openwebui.com/posts/glidegrail_d3af0156): one-click installs from the Open WebUI community hub
