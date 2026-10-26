@@ -1,0 +1,30 @@
+# The listings that don't read the repo by themselves, refreshed on every release (and by hand: Actions > listings >
+# Run workflow). skills.sh, cursor.directory and Antigravity read this repo as it is.
+#
+# Smithery: each skill in skills/ from its folder here, a new one listed, a changed one refreshed (Smithery doesn't
+# re-read a listed skill by itself). Its API takes a key: the repository secret SMITHERY_API_KEY (smithery.ai >
+# account > API keys). Without one, this says so and stops, harming nothing.
+name: listings
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smithery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - env:
+          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$SMITHERY_API_KEY" ]; then echo "::notice::no SMITHERY_API_KEY secret: Smithery's skills left as they are"; exit 0; fi
+          for dir in skills/*/; do
+            skill="$(basename "$dir")"
+            curl -fsS -X PUT "https://api.smithery.ai/skills/bikemeardsley/$skill" \
+              -H "Authorization: Bearer $SMITHERY_API_KEY" -H 'Content-Type: application/json' \
+              -d "{\"gitUrl\": \"https://github.com/$REPO/tree/main/skills/$skill\"}" -o /dev/null -w "$skill: %{http_code}\n"
+          done
