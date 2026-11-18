@@ -1,24 +1,25 @@
 ---
 name: glidegrail
 description: >-
-  ServiceNow coding standards and conventions for humans and AI agents. Use this skill
-  whenever writing, reviewing, or refactoring ServiceNow code or platform artifacts:
-  GlideRecord/GlideAggregate queries, Script Includes, Business Rules, Client Scripts,
-  UI Policies, GlideAjax, Flow Designer flows, ACLs, Service Catalog items and record
-  producers, Service Portal widgets, Scripted REST APIs and integrations, notifications,
-  scheduled jobs, MRVS, system properties, logging, or ATF tests. Covers naming
-  conventions, server- and client-side patterns, security, and integration design.
+  ServiceNow coding standards. Use whenever writing, reviewing, or refactoring ServiceNow
+  code or config: GlideRecord, Script Includes, Business Rules, Client Scripts, UI Policies,
+  GlideAjax, Flow Designer, ACLs, Service Catalog, Service Portal, REST and integrations, ATF.
 ---
 
 # GlideGrail — ServiceNow Coding Standards
 
-Before writing or reviewing any ServiceNow code, follow the conventions in **`GlideGrail.md`**
-(alongside this file). It is the source of truth for how code should be written on this
-platform.
+**`GlideGrail.md`** (alongside this file) is the source of truth for ServiceNow code. Its
+API signatures and conventions are deliberately precise: take the rule from it, not from
+general knowledge, and prefer it over your defaults when they differ.
 
-When a task touches ServiceNow, consult `GlideGrail.md` for the specific rule rather than
-relying on general knowledge — its API signatures and conventions are intentionally precise,
-because wrong details get amplified into hallucinated code downstream. Apply the relevant
-section (naming, GlideRecord patterns, Script Include structure, client-side rules, Flow
-Designer, ACLs, integrations, logging, etc.) to whatever you produce, and prefer its guidance
-over defaults when they differ.
+It is about 47K tokens, so read only what the task needs:
+
+1. **List its sections:** the `## ` headings with line numbers (e.g.
+   `grep -n '^## ' GlideGrail.md`). Each section runs to the next `## ` heading.
+2. **Always read** *Agent Ground Rules*, *Technical Debt* and *Do Not Use*. They apply to
+   every task.
+3. **Read the sections the task touches**, by line range: a Client Script task needs
+   *Client Scripts*, *GlideForm* and *GlideAJAX*, not *ATF* or *LDAP*. A rule that links to
+   another section (`[…](#anchor)`) and decides what you write: read that section too.
+
+Read the whole file only for a broad review that spans most areas.

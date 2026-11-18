@@ -141,10 +141,11 @@ need the standards to be present versus how much context you want to spend.
   **every** request, so at ~47K tokens don't paste the doc itself — point instead:
 
   ```markdown
-  For any ServiceNow code, load and follow GlideGrail.md before writing:
+  For any ServiceNow code, follow docs/GlideGrail.md. Read only the sections you
+  need: list its `## ` headings, always read Agent Ground Rules, Technical Debt and
+  Do Not Use, then the sections the task touches. No local copy? Fetch
   https://raw.githubusercontent.com/bikemeardsley/GlideGrail.md/main/skills/glidegrail/GlideGrail.md
-  (or the local copy if this repo vendors one). Substitute PREFIX with this
-  project's scoped-app prefix.
+  Substitute PREFIX with this project's scoped-app prefix.
   ```
 
   Both tools can read a vendored copy of the doc from the repo on demand, which also works
